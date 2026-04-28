@@ -11,6 +11,7 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
     var carbs: Double = 0.0
     var protein: Double = 0.0
     var qualProtein: Double = 0.0
+    var salt: Double = 0.0
 
     private val ingredients = mutableListOf<FinalMeal>()
 
@@ -51,6 +52,13 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
         return 0.0;
     }
 
+    fun getSaltPer100g(): Double {
+        if ( portionSize != 0.0 ) {
+            return salt / portionSize;
+        }
+        return 0.0
+    }
+
     fun getQualProteinPer100g(): Double {
         if ( portionSize != 0.0 ) {
             return qualProtein / portionSize;
@@ -72,6 +80,7 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
 
         ingredients.add(FinalMeal(meal, portionSize))
         this.portionSize += portionSize
+        this.salt += meal.getSaltPer100g() * portionSize / 100
         this.calories += meal.getCalPer100g() * portionSize / 100
         this.fat += meal.getFatPer100g() * portionSize / 100
         this.carbs += meal.getCarbsPer100g() * portionSize / 100
@@ -84,6 +93,7 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
         if ( isFinalMeal() ) { //final type of ingredient
             return
         }
+        this.salt = 0.0
         this.portionSize = 0.0
         this.calories = 0.0
         this.fat = 0.0
@@ -93,6 +103,7 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
         this.price = 0.0
         for ( x in ingredients ) {
             this.portionSize += x.weightEaten
+            this.salt += x.meal.getSaltPer100g() * x.weightEaten / 100
             this.calories += x.meal.getCalPer100g() * x.weightEaten / 100
             this.fat += x.meal.getFatPer100g() * x.weightEaten / 100
             this.carbs += x.meal.getCarbsPer100g() * x.weightEaten / 100

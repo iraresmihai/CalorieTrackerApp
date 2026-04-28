@@ -4,6 +4,10 @@ data class FinalMeal(val meal: Meal, val weightEaten: Double) {
     fun getTotalCal() : Double {
         return meal.getCalPer100g() * weightEaten / 100
     }
+
+    fun getTotalSalt() : Double {
+        return meal.getSaltPer100g() * weightEaten / 100
+    }
     fun getTotalFat() : Double {
         return meal.getFatPer100g() * weightEaten / 100
     }
