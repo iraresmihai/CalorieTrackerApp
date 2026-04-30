@@ -19,49 +19,49 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
 
     fun getCalPer100g(): Double {
         if ( portionSize != 0.0 ) {
-            return calories / portionSize;
+            return calories * 100 / portionSize;
         }
         return 0.0;
     }
 
     fun getFatPer100g(): Double {
         if ( portionSize != 0.0 ) {
-            return fat / portionSize;
+            return fat * 100 / portionSize;
         }
         return 0.0;
     }
 
     fun getPricePer100g(): Double {
         if ( portionSize != 0.0 ) {
-            return price / portionSize;
+            return price * 100 / portionSize;
         }
         return 0.0;
     }
 
     fun getCarbsPer100g(): Double {
         if ( portionSize != 0.0 ) {
-            return carbs / portionSize;
+            return carbs * 100 / portionSize;
         }
         return 0.0;
     }
 
     fun getProteinPer100g(): Double {
         if ( portionSize != 0.0 ) {
-            return protein / portionSize;
+            return protein * 100 / portionSize;
         }
         return 0.0;
     }
 
     fun getSaltPer100g(): Double {
         if ( portionSize != 0.0 ) {
-            return salt / portionSize;
+            return salt * 100 / portionSize;
         }
         return 0.0
     }
 
     fun getQualProteinPer100g(): Double {
         if ( portionSize != 0.0 ) {
-            return qualProtein / portionSize;
+            return qualProtein * 100 / portionSize;
         }
         return 0.0;
     }

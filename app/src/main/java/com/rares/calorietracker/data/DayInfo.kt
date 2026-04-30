@@ -21,6 +21,7 @@ data class DayInfo(val date: LocalDate, var trainingName: String, val targetCalo
 
     fun addMeal(finalMealAux: FinalMeal) {
         val finalMeal = finalMealAux.copy()
+        currentFood.add(finalMeal)
         currentCalories += finalMeal.getTotalCal()
         protein += finalMeal.getTotalProtein()
         qualProtein += finalMeal.getTotalQualProtein()

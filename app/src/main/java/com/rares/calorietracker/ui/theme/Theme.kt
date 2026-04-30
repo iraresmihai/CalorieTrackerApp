@@ -17,7 +17,8 @@ private val DarkColorScheme = darkColorScheme(
     secondary = PurpleGrey80,
     tertiary = Pink80,
     surfaceContainer = Color(0xFFE1E4E8),
-    surface = Color(0xFFE1E4E8)
+    surface = Color(0xFFE1E4E8),
+    //background = Color(0xFF0A0A0A)
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -25,8 +26,8 @@ private val LightColorScheme = lightColorScheme(
     secondary = PurpleGrey40,
     tertiary = Pink40,
     surfaceContainer = Color(0xFF636870),
-    surface = Color(0xFFF2F5F5)
-
+    surface = Color(0xFFF2F5F5),
+    background = Color(0xFF0A0A0A)
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
     surface = Color(0xFFFFFBFE),
@@ -45,15 +46,17 @@ fun MyApplicationTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    val colorScheme = LightColorScheme /* when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            //if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        //darkTheme -> DarkColorScheme
+        //else -> LightColorScheme
     }
+    */
 
     MaterialTheme(
         colorScheme = colorScheme,
