@@ -12,7 +12,7 @@ data class DayInfo(val date: LocalDate, var trainingName: String, val targetCalo
     var salt: Double = 0.0
     var foodWeight: Double = 0.0
 
-    var workoutRationg: Int = 0
+    var workoutRating: Int = 0
     var weight: Double = 0.0
     var stepCount: Int = 0
     var trainingTime: Int = 0
