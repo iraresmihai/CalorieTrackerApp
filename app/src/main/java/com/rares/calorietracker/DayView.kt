@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -55,11 +56,12 @@ import androidx.compose.material3.ModalBottomSheetDefaults
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import com.rares.calorietracker.data.AllFoodList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining) {
+fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoodList) {
     val ringColor = MaterialTheme.colorScheme.surfaceContainer
 
     var settingsDialog = remember {
@@ -84,9 +86,28 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining) {
         mutableStateOf(dayInfo.trainingName)
     }
 
+    var showAddMeal = remember {
+        mutableStateOf(false)
+    }
+
+    var showAddCustom = remember {
+        mutableStateOf(false)
+    }
+
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
+        if (showAddMeal.value) {
+            AddIngredientDialog(
+                ingredients = foodList.allMeals + foodList.allSnacks,
+                onDismiss = { showAddMeal.value = false },
+                onConfirm = { ingredient, weight ->
+                    dayInfo.addMeal(FinalMeal(ingredient, weight))
+                    showAddMeal.value = false
+                },
+                whatToAdd = "ingredient"
+            )
+        }
         if (settingsDialog.value) {
             ModalBottomSheet(
                 properties = ModalBottomSheetProperties(shouldDismissOnBackPress = false),
@@ -411,20 +432,15 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining) {
             Column(modifier = Modifier.padding(top = 8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Spacer(modifier = Modifier.weight(1f))
                     Text(
                         "Food log",
                         style = MaterialTheme.typography.titleMedium
                     )
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                        IconButton(onClick = { /* TODO settings */ }) {
-                            Icon(Icons.Default.Add, contentDescription = "Settings")
-                        }
-                    }
                 }
-                HorizontalDivider(thickness = 3.dp, modifier = Modifier.padding(0.dp))
+                HorizontalDivider(thickness = 3.dp, modifier = Modifier.padding(top=  7.dp))
             }
         }
         Card(modifier = Modifier.fillMaxWidth().weight(1f), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.outlineVariant)) {
@@ -432,6 +448,27 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining) {
                 modifier = Modifier.fillMaxSize().padding(7.dp),
                 verticalArrangement = Arrangement.spacedBy(7.dp)
             ) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                       // horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { showAddMeal.value = true },
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Text("Add meal/snack")
+                        }
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { /* TODO GO TO ADD CUSTOM */ },
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Text("Add custom")
+                        }
+                    }
+                }
                 items(dayInfo.currentFood.size) {
                     FoodView(dayInfo.currentFood[it],)
                 }
@@ -462,44 +499,41 @@ fun DayScreenPreview() {
         trainingTime = 60
         salt = 2.56
     }
-    val chickenMeal = Meal("Chicken breast", TypeOfMeal.INGREDIENT).apply {
-        calories = 165.0
-        protein = 31.0
-        qualProtein = 31.0
-        carbs = 0.0
-        fat = 3.6
-        salt = 0.1
-        price = 0.8
-        portionSize = 100.0
-    }
 
+    val fakeAllFoodList = AllFoodList()
+    val chicken = Meal("Chicken breast", TypeOfMeal.INGREDIENT).apply {
+        calories = 165.0; protein = 31.0; qualProtein = 31.0
+        carbs = 0.0; fat = 3.6; salt = 0.1; price = 0.8; portionSize = 100.0
+    }
     val rice = Meal("Rice", TypeOfMeal.INGREDIENT).apply {
-        calories = 130.0
-        protein = 2.7
-        qualProtein = 2.7
-        carbs = 28.0
-        fat = 0.3
-        salt = 0.0
-        price = 0.2
-        portionSize = 100.0
+        calories = 130.0; protein = 2.7; qualProtein = 2.7
+        carbs = 28.0; fat = 0.3; salt = 0.0; price = 0.2; portionSize = 100.0
     }
-
     val oliveOil = Meal("Olive oil", TypeOfMeal.INGREDIENT).apply {
-        calories = 884.0
-        protein = 0.0
-        qualProtein = 0.0
-        carbs = 0.0
-        fat = 100.0
-        salt = 0.0
-        price = 1.0
-        portionSize = 100.0
+        calories = 884.0; protein = 0.0; qualProtein = 0.0
+        carbs = 0.0; fat = 100.0; salt = 0.0; price = 1.0; portionSize = 100.0
     }
+    fakeAllFoodList.addIngredient(chicken)
+    fakeAllFoodList.addIngredient(rice)
+    fakeAllFoodList.addIngredient(oliveOil)
+
+    val proteinBar = Meal("Protein bar", TypeOfMeal.SNACK).apply {
+        calories = 220.0; protein = 20.0; qualProtein = 18.0
+        carbs = 25.0; fat = 7.0; salt = 0.3; price = 1.5; portionSize = 60.0
+    }
+    val banana = Meal("Banana", TypeOfMeal.SNACK).apply {
+        calories = 89.0; protein = 1.1; qualProtein = 1.0
+        carbs = 23.0; fat = 0.3; salt = 0.0; price = 0.3; portionSize = 100.0
+    }
+    fakeAllFoodList.addSnack(proteinBar)
+    fakeAllFoodList.addSnack(banana)
 
     val chickenRiceBowl = Meal("Chicken Rice Bowl", TypeOfMeal.BASIC_MEAL).apply {
-        addIngredient(chickenMeal, 200.0)
+        addIngredient(chicken, 200.0)
         addIngredient(rice, 150.0)
         addIngredient(oliveOil, 10.0)
     }
+    fakeAllFoodList.addMeal(chickenRiceBowl)
 
     val fakeFinalMeal = FinalMeal(chickenRiceBowl, chickenRiceBowl.portionSize)
 
@@ -522,7 +556,7 @@ fun DayScreenPreview() {
     }
 
     MyApplicationTheme {
-        DayView(dayInfo = fakeDayInfo, allTrainingNames = fakeTypeOfTraining)
+        DayView(dayInfo = fakeDayInfo, allTrainingNames = fakeTypeOfTraining, foodList = fakeAllFoodList)
     }
 }
 

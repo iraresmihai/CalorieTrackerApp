@@ -29,8 +29,7 @@ import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
 
 @Composable
-fun MealCard(meal: Meal) {
-    Column() {
+fun MealCard(meal: Meal, viewModify: Boolean) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -91,29 +90,34 @@ fun MealCard(meal: Meal) {
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        //.background(MaterialTheme.colorScheme.background)
-                        .clickable { }
-                        .padding(2.dp)
-                ) {
-                    Box(
+                if ( viewModify ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .background(
-                                MaterialTheme.colorScheme.background,
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                            .padding(5.dp)
+                            //.background(MaterialTheme.colorScheme.background)
+                            .clickable { }
+                            .padding(2.dp)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White)
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.background,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(5.dp)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White)
+                        }
+                        Text(
+                            "Modify",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontSize = 11.sp
+                        )
                     }
-                    Text("Modify", style = MaterialTheme.typography.titleSmall, fontSize = 11.sp)
                 }
             }
         }
-    }
 }
 
 @Preview(showBackground = true)
@@ -124,6 +128,6 @@ fun MealCardPreview() {
         carbs = 0.0; fat = 3.6; salt = 0.1; price = 0.8; portionSize = 100.0
     }
     MyApplicationTheme {
-        MealCard(meal = chicken)
+        MealCard(meal = chicken, viewModify = false)
     }
 }

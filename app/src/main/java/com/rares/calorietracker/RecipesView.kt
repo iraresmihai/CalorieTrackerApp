@@ -1,17 +1,25 @@
 package com.rares.calorietracker
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,32 +55,104 @@ fun RecipesView(allFoodList: AllFoodList) {
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> IngredientsView(allFoodList.allIngredients)
-                1 -> MealsView(allFoodList.allMeals)
-                2 -> SnacksView(allFoodList.allSnacks)
+                0 -> IngredientsView(allFoodList)
+                1 -> MealsView(allFoodList)
+                2 -> SnacksView(allFoodList)
             }
         }
     }
 }
 
 @Composable
-fun IngredientsView(ingredients: List<Meal>) {
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        items(ingredients.size) { MealCard(ingredients[it]) }
+fun IngredientsView(allFoodList: AllFoodList) {
+    var showAdd = remember { mutableStateOf(false) }
+    val emptyIngredient = remember { mutableStateOf(Meal("New ingredient", TypeOfMeal.INGREDIENT)) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            items(allFoodList.allIngredients.size) { MealCard(allFoodList.allIngredients[it], false) }
+        }
+        if (showAdd.value) {
+            EditSnackIngredient(
+                meal = emptyIngredient.value,
+                onDismiss = { wasAdded ->
+                    if (wasAdded) {
+                        allFoodList.addSnack(emptyIngredient.value)
+                        emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
+                    }
+                    showAdd.value = false
+                },
+                isToAdd = true
+            )
+        }
+        FloatingActionButton(
+            onClick = {
+                showAdd.value = true
+                emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
+            },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add ingredient")
+        }
     }
 }
 
 @Composable
-fun MealsView(meals: List<Meal>) {
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        items(meals.size) { MealCard(meals[it]) }
+fun MealsView(allFoodList: AllFoodList) {
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            items(allFoodList.allMeals.size) { MealCard(allFoodList.allMeals[it], false) }
+        }
+        FloatingActionButton(
+            onClick = { /* TODO add meal */ },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add meal")
+        }
     }
 }
 
 @Composable
-fun SnacksView(snacks: List<Meal>) {
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        items(snacks.size) { MealCard(snacks[it]) }
+fun SnacksView(allFoodList: AllFoodList) {
+    var showAdd = remember { mutableStateOf(false) }
+    val emptySnack = remember { mutableStateOf(Meal("New snack", TypeOfMeal.SNACK)) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            items(allFoodList.allSnacks.size) { MealCard(allFoodList.allSnacks[it], false) }
+        }
+        if (showAdd.value) {
+            EditSnackIngredient(
+                meal = emptySnack.value,
+                onDismiss = { wasAdded ->
+                    if (wasAdded) {
+                        allFoodList.addSnack(emptySnack.value)
+                        emptySnack.value = Meal("New snack", TypeOfMeal.SNACK)
+                    }
+                    showAdd.value = false
+                },
+                isToAdd = true
+            )
+        }
+        FloatingActionButton(
+            onClick = {
+                showAdd.value = true
+                emptySnack.value = Meal("New snack", TypeOfMeal.SNACK)
+                      },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add snack")
+        }
     }
 }
 

@@ -13,9 +13,9 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
     var qualProtein: Double = 0.0
     var salt: Double = 0.0
 
-    private val ingredients = mutableListOf<FinalMeal>()
+    val ingredients = mutableListOf<FinalMeal>()
 
-    private val mealsWhichContain = mutableListOf<Meal>() //all meals which contain this meal
+    val mealsWhichContain = mutableListOf<Meal>() //all meals which contain this meal
 
     fun getCalPer100g(): Double {
         if ( portionSize != 0.0 ) {
@@ -118,7 +118,7 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
         recalcInfo()
     }
 
-    fun updInfo(newCalories: Double, newFat: Double, newCarbs: Double, newProtein: Double, newQualProtein: Double, newPrice: Double, newPortionSize: Double) {
+    fun updInfo(newCalories: Double, newFat: Double, newCarbs: Double, newProtein: Double, newQualProtein: Double, newPrice: Double, newPortionSize: Double, newSalt: Double) {
         if ( !isFinalMeal() ) {
             return
         }
@@ -129,6 +129,7 @@ data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTO
         this.qualProtein = newQualProtein
         this.price = newPrice
         this.portionSize = newPortionSize
+        this.salt = newSalt
         for ( x in mealsWhichContain ) {
             x.recalcInfo()
         }

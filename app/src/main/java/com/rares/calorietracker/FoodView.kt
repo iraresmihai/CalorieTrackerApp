@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.clip
@@ -112,9 +113,9 @@ fun FoodView(meal: FinalMeal){
                             )
                             .padding(5.dp)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White)
+                        Icon(Icons.Default.Clear, contentDescription = null, tint = Color.Red)
                     }
-                    Text("Modify", style = MaterialTheme.typography.titleSmall, fontSize = 11.sp)
+                    Text("Delete", style = MaterialTheme.typography.titleSmall, fontSize = 11.sp)
                 }
             }
         }
