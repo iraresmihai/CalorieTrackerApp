@@ -1,9 +1,11 @@
 package com.rares.calorietracker
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,8 +32,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.rares.calorietracker.data.FinalMeal
+import com.rares.calorietracker.data.Meal
+import com.rares.calorietracker.data.TypeOfMeal
+import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -43,9 +52,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {
     val navController = rememberNavController()
+    val viewModel: CalorieTrackerViewModel = viewModel()
+
     //val color = if (isSystemInDarkTheme()) Color.White else Color.Black
     Scaffold(
         bottomBar = {
@@ -106,12 +118,64 @@ fun App() {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("Home") {
-                //HomeScreen()
+                HomeView(viewModel, navController)
+            }
+            composable("Recipes") {
+                RecipesView(viewModel.allFoodList, navController)
+            }
+            composable("Meal/{isToAdd}/{isCustom}/{dayToAdd}/{idInList}") { entry ->
+                val isToAdd = entry.arguments?.getString("isToAdd")?.toBoolean() ?: false
+                val isCustom = entry.arguments?.getString("isCustom")?.toBoolean() ?: false
+                val dayToAdd = entry.arguments?.getString("dayToAdd")?.let {
+                    if (it == "null") null else LocalDate.parse(it)
+                }
+                val idInList = entry.arguments?.getString("idInList")?.toInt() ?: -1
+
+                if ( isToAdd ) {
+                    if ( isCustom ) {
+                        val accDay = LocalDate.parse(dayToAdd!!.toString())
+                        val newMeal =  Meal("Enter name", typeOfMeal = TypeOfMeal.CUSTOM_MEAL)
+                        MealView(newMeal, viewModel, navController, isToAdd = true, onAdd = { wasAdded ->
+                            if ( wasAdded ) {
+                                viewModel.getDayInfo(accDay).addMeal(FinalMeal(newMeal, newMeal.portionSize, newMeal.name))
+                            }
+                        })
+                    } else {
+                        val newMeal = Meal("Enter name", typeOfMeal = TypeOfMeal.BASIC_MEAL)
+                        MealView(newMeal, viewModel, navController, isToAdd = true, onAdd = { wasAdded ->
+                            if ( wasAdded ) {
+                                viewModel.allFoodList.addMeal(newMeal)
+                            }
+                        })
+                    }
+                } else {
+                    val meal = viewModel.allFoodList.allMeals[idInList]
+                    MealView(meal, viewModel, navController, onAdd = { wasAdded ->
+                        if ( !wasAdded ) {
+                            viewModel.allFoodList.delMeal(meal)
+                        }
+                    })
+                }
+            }
+            composable("Snack/{snackId}") { entry ->
+                val snackId = entry.arguments?.getString("snackId")?.toInt() ?: -1
+                val snack = viewModel.allFoodList.allSnacks[snackId]
+                IngredientSnackView(snack, onDelete = {
+                    viewModel.allFoodList.delSnack(snack)
+                })
+            }
+            composable("Ingredient/{ingredientId}") { entry ->
+                val ingredientId = entry.arguments?.getString("ingredientId")?.toInt() ?: -1
+                val ingredient = viewModel.allFoodList.allIngredients[ingredientId]
+                IngredientSnackView(ingredient, onDelete = {
+                    viewModel.allFoodList.delIngredient(ingredient)
+                })
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {

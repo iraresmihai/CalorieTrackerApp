@@ -1,21 +1,27 @@
 package com.rares.calorietracker.data
 
 import androidx.compose.animation.core.Ease
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.setValue
 
-data class Meal(var name : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTOM_MEAL) {
+data class Meal(val initialName : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTOM_MEAL) {
     //a basic meal/custom meal can contain only ingredients and snacks
-    var calories: Double = 0.0
-    var portionSize: Double = 0.0
-    var price: Double = 0.0
-    var fat: Double = 0.0
-    var carbs: Double = 0.0
-    var protein: Double = 0.0
-    var qualProtein: Double = 0.0
-    var salt: Double = 0.0
+    var name by mutableStateOf(initialName)
+    var calories by mutableDoubleStateOf(0.0)
+    var portionSize by mutableDoubleStateOf(0.0)
+    var price by mutableDoubleStateOf(0.0)
+    var fat by mutableDoubleStateOf(0.0)
+    var carbs by mutableDoubleStateOf(0.0)
+    var protein by mutableDoubleStateOf(0.0)
+    var qualProtein by mutableDoubleStateOf(0.0)
+    var salt by mutableDoubleStateOf(0.0)
 
-    val ingredients = mutableListOf<FinalMeal>()
+    val ingredients = mutableStateListOf<FinalMeal>()
 
-    val mealsWhichContain = mutableListOf<Meal>() //all meals which contain this meal
+    val mealsWhichContain = mutableStateListOf<Meal>() //all meals which contain this meal
 
     fun getCalPer100g(): Double {
         if ( portionSize != 0.0 ) {

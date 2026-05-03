@@ -49,7 +49,7 @@ import com.rares.calorietracker.ui.theme.MyApplicationTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun IngredientSnackView(meal: Meal) {
+fun IngredientSnackView(meal: Meal, onDelete: () -> Unit = {}) {
     var settingsDialog = remember {
         mutableStateOf(false)
     }
@@ -75,7 +75,7 @@ fun IngredientSnackView(meal: Meal) {
                 text = { Text("This action cannot be undone. Other meals containing this item will be affected.") },
                 confirmButton = {
                     TextButton(onClick = {
-                        /* TODO DELETE ITEM */
+                        onDelete()
                         deleteDialog.value = false
                     }) { Text("Delete") }
                 },

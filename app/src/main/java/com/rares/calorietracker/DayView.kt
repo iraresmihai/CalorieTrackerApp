@@ -56,12 +56,16 @@ import androidx.compose.material3.ModalBottomSheetDefaults
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.navigation.NavController
 import com.rares.calorietracker.data.AllFoodList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoodList) {
+fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoodList, navController: NavController,     onPreviousDay: () -> Unit = {},
+            onNextDay: () -> Unit = {},
+            isToday: Boolean = false
+) {
     val ringColor = MaterialTheme.colorScheme.surfaceContainer
 
     var settingsDialog = remember {
@@ -87,10 +91,6 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
     }
 
     var showAddMeal = remember {
-        mutableStateOf(false)
-    }
-
-    var showAddCustom = remember {
         mutableStateOf(false)
     }
 
@@ -276,7 +276,7 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { /* TODO GO TO PREVIOUS DAY */ }) {
+                IconButton(onClick = { onPreviousDay() }) {
                     Icon(
                         Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                         contentDescription = "Previous day"
@@ -286,7 +286,7 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                     text = dayInfo.date.dayOfWeek.toString().lowercase()
                         .replaceFirstChar { it.uppercase() } + " - " + dayInfo.date,
                     style = MaterialTheme.typography.titleMedium)
-                IconButton(onClick = { /* TODO GO TO NEXT DAY */ }) {
+                IconButton(enabled = !isToday, onClick = { onNextDay() }) {
                     Icon(
                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "Previous day"
@@ -462,7 +462,7 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                         }
                         Button(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = { /* TODO GO TO ADD CUSTOM */ },
+                            onClick = { navController.navigate("Meal/true/true/${dayInfo.date}/-1") },
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Text("Add custom")
@@ -470,13 +470,16 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                     }
                 }
                 items(dayInfo.currentFood.size) {
-                    FoodView(dayInfo.currentFood[it],)
+                    FoodView(dayInfo.currentFood[it], onDelete = {
+                        dayInfo.delMeal(dayInfo.currentFood[it])
+                    })
                 }
             }
         }
     }
 }
 
+/*
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
@@ -559,4 +562,5 @@ fun DayScreenPreview() {
         DayView(dayInfo = fakeDayInfo, allTrainingNames = fakeTypeOfTraining, foodList = fakeAllFoodList)
     }
 }
+ */
 

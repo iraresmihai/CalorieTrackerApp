@@ -58,6 +58,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.androidx.compose.material.icons)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     testImplementation("junit:junit:4.13.2")
     implementation(libs.androidx.navigation.compose.android)

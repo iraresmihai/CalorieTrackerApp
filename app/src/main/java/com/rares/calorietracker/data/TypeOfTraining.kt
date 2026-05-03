@@ -2,6 +2,7 @@ package com.rares.calorietracker.data
 
 class TypeOfTraining {
     val allTraining = mutableListOf<String>()
+    var targetCalories = 0
 
     fun addTraining(name: String, pos: Int) {
         if ( pos == -1 ) {
@@ -20,5 +21,9 @@ class TypeOfTraining {
 
     fun delTraining(name: String) {
         allTraining.remove(name)
+    }
+
+    fun setTargetCalories(calories: Int) {
+        targetCalories = calories
     }
 }

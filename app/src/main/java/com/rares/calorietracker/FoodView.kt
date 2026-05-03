@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun FoodView(meal: FinalMeal){
+fun FoodView(meal: FinalMeal, onDelete: () -> Unit = {}){
     Column() {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -102,7 +102,7 @@ fun FoodView(meal: FinalMeal){
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         //.background(MaterialTheme.colorScheme.background)
-                        .clickable { }
+                        .clickable { onDelete() }
                         .padding(2.dp)
                 ) {
                     Box(

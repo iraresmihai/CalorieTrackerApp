@@ -29,9 +29,10 @@ import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
 
 @Composable
-fun MealCard(meal: Meal, viewModify: Boolean) {
+fun MealCard(meal: Meal, viewModify: Boolean, onClick : () -> Unit = {}) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .clickable{onClick()},
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Row(

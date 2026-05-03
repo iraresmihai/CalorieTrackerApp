@@ -3,6 +3,7 @@ package com.rares.calorietracker
 import com.rares.calorietracker.data.AllFoodList
 
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -54,12 +56,16 @@ import androidx.compose.ui.unit.dp
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
+import java.time.LocalDate
+import androidx.compose.runtime.State
+import androidx.navigation.NavController
+import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MealView(meal: Meal, foodList: AllFoodList, isToAdd: Boolean = false, onAdd: () -> Unit = {}) {
-
+fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavController, isToAdd: Boolean = false, onAdd: (wasAdded: Boolean) -> Unit = {}) {
+    var foodList = viewModel.allFoodList
     var deleteDialog = remember {
         mutableStateOf(false)
     }
@@ -67,7 +73,15 @@ fun MealView(meal: Meal, foodList: AllFoodList, isToAdd: Boolean = false, onAdd:
     var showAddSnack = remember { mutableStateOf(false) }
     var mealName = remember { mutableStateOf(meal.name) }
 
-
+    BackHandler {
+        if (isToAdd) {
+            onAdd(false)
+            navController.popBackStack()
+        } else {
+            onAdd(true)
+            navController.popBackStack()
+        }
+    }
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
     ) {
@@ -100,8 +114,9 @@ fun MealView(meal: Meal, foodList: AllFoodList, isToAdd: Boolean = false, onAdd:
                 text = { Text("This action cannot be undone.") },
                 confirmButton = {
                     TextButton(onClick = {
-                        /* TODO DELETE ITEM */
+                        onAdd(false)
                         deleteDialog.value = false
+                        navController.popBackStack()
                     }) { Text("Delete") }
                 },
                 dismissButton = {
@@ -119,14 +134,27 @@ fun MealView(meal: Meal, foodList: AllFoodList, isToAdd: Boolean = false, onAdd:
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                    IconButton(onClick = {
-                        deleteDialog.value = true
-                    }) {
-                        if (!isToAdd)
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
-                        else
-                            Icon(Icons.Default.Clear, contentDescription = "Delete", tint = Color.Red)
+                if ( !isToAdd ) {
+                    Spacer(modifier = Modifier.weight(1f))
+                } else {
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                        if ( isToAdd ) {
+                            IconButton(onClick = { onAdd(true) }) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = "Add",
+                                    tint = Color.Green
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { onAdd(true) }) {
+                                Icon(
+                                    Icons.Default.ChevronLeft,
+                                    contentDescription = "Back",
+                                    tint = Color.Green
+                                )
+                            }
+                        }
                     }
                 }
                 BasicTextField(
@@ -137,13 +165,14 @@ fun MealView(meal: Meal, foodList: AllFoodList, isToAdd: Boolean = false, onAdd:
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
-                if ( !isToAdd ) {
-                    Spacer(modifier = Modifier.weight(1f))
-                } else {
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                        IconButton(onClick = onAdd) {
-                            Icon(Icons.Default.Check, contentDescription = "Add", tint = Color.Green)
-                        }
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                    IconButton(onClick = {
+                        deleteDialog.value = true
+                    }) {
+                        if (!isToAdd)
+                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                        else
+                            Icon(Icons.Default.Clear, contentDescription = "Delete", tint = Color.Red)
                     }
                 }
             }
@@ -241,13 +270,17 @@ fun MealView(meal: Meal, foodList: AllFoodList, isToAdd: Boolean = false, onAdd:
                     }
                 }
                 items(meal.ingredients.size) {
-                    FoodView(meal.ingredients[it])
+                    FoodView(meal.ingredients[it], onDelete = {
+                        meal.ingredients.removeAt(it)
+                        meal.recalcInfo()
+                    })
                 }
             }
         }
     }
 }
 
+/*
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
@@ -291,3 +324,4 @@ fun MealViewPreview() {
         MealView(meal = chickenRiceBowl, foodList = fakeAllFoodList)
     }
 }
+ */

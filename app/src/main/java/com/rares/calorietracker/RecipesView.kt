@@ -9,12 +9,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,20 +27,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.rares.calorietracker.data.AllFoodList
 import com.rares.calorietracker.data.FinalMeal
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.State
+import androidx.navigation.compose.rememberNavController
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipesView(allFoodList: AllFoodList) {
+fun RecipesView(allFoodList: AllFoodList, navController: NavController) {
     val tabs = listOf("Ingredients", "Meals", "Snacks")
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text("Recipes") },
+            navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+            }
+        )
         TabRow(selectedTabIndex = pagerState.currentPage) {
             tabs.forEachIndexed { index, title ->
                 Tab(
@@ -55,16 +71,16 @@ fun RecipesView(allFoodList: AllFoodList) {
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> IngredientsView(allFoodList)
-                1 -> MealsView(allFoodList)
-                2 -> SnacksView(allFoodList)
+                0 -> IngredientsView(allFoodList, navController)
+                1 -> MealsView(allFoodList, navController)
+                2 -> SnacksView(allFoodList, navController)
             }
         }
     }
 }
 
 @Composable
-fun IngredientsView(allFoodList: AllFoodList) {
+fun IngredientsView(allFoodList: AllFoodList, navController: NavController) {
     var showAdd = remember { mutableStateOf(false) }
     val emptyIngredient = remember { mutableStateOf(Meal("New ingredient", TypeOfMeal.INGREDIENT)) }
 
@@ -73,7 +89,10 @@ fun IngredientsView(allFoodList: AllFoodList) {
             modifier = Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            items(allFoodList.allIngredients.size) { MealCard(allFoodList.allIngredients[it], false) }
+            items(allFoodList.allIngredients.size) { MealCard(allFoodList.allIngredients[it], false, onClick = {
+                navController.navigate("Ingredient/$it")
+            })
+            }
         }
         if (showAdd.value) {
             EditSnackIngredient(
@@ -101,17 +120,22 @@ fun IngredientsView(allFoodList: AllFoodList) {
 }
 
 @Composable
-fun MealsView(allFoodList: AllFoodList) {
+fun MealsView(allFoodList: AllFoodList, navController: NavController) {
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            items(allFoodList.allMeals.size) { MealCard(allFoodList.allMeals[it], false) }
+            items(allFoodList.allMeals.size) {
+                MealCard(
+                    allFoodList.allMeals[it], false,
+                    onClick = {
+                        navController.navigate("Meal/false/false/null/$it")
+                    }) }
         }
         FloatingActionButton(
-            onClick = { /* TODO add meal */ },
+            onClick = { navController.navigate("Meal/true/false/null/-1") },
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add meal")
@@ -120,7 +144,7 @@ fun MealsView(allFoodList: AllFoodList) {
 }
 
 @Composable
-fun SnacksView(allFoodList: AllFoodList) {
+fun SnacksView(allFoodList: AllFoodList, navController: NavController) {
     var showAdd = remember { mutableStateOf(false) }
     val emptySnack = remember { mutableStateOf(Meal("New snack", TypeOfMeal.SNACK)) }
 
@@ -129,7 +153,10 @@ fun SnacksView(allFoodList: AllFoodList) {
             modifier = Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            items(allFoodList.allSnacks.size) { MealCard(allFoodList.allSnacks[it], false) }
+            items(allFoodList.allSnacks.size) { MealCard(allFoodList.allSnacks[it], false, onClick = {
+                navController.navigate("Snack/$it")
+            })
+            }
         }
         if (showAdd.value) {
             EditSnackIngredient(
@@ -193,8 +220,9 @@ fun RecipesViewPreview() {
         addIngredient(oliveOil, 10.0)
     }
     fakeAllFoodList.addMeal(chickenRiceBowl)
+    val navController = rememberNavController()
 
     MyApplicationTheme {
-        RecipesView(allFoodList = fakeAllFoodList)
+        RecipesView(allFoodList = fakeAllFoodList, navController)
     }
 }
