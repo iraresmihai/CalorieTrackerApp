@@ -31,6 +31,8 @@ import com.rares.calorietracker.ui.theme.MyApplicationTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rares.calorietracker.data.FinalMeal
@@ -57,6 +59,7 @@ class MainActivity : ComponentActivity() {
 fun App() {
     val navController = rememberNavController()
     val viewModel: CalorieTrackerViewModel = viewModel()
+    val showAddMeal = remember { mutableStateOf(false) }
 
     //val color = if (isSystemInDarkTheme()) Color.White else Color.Black
     Scaffold(
@@ -65,6 +68,7 @@ fun App() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
+                    .navigationBarsPadding()
             ) {
                 Row(
                     modifier = Modifier
@@ -74,7 +78,7 @@ fun App() {
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    listOf("Log", "Recipes", null, "Stats", "Settings").forEach { route ->
+                    listOf("Home", "Recipes", null, "Stats", "Settings").forEach { route ->
                         if (route == null) {
                             Spacer(modifier = Modifier.weight(1f))
                         } else {
@@ -98,7 +102,7 @@ fun App() {
 
                 // floating circle button in the middle
                 FloatingActionButton(
-                    onClick = { navController.navigate("AddMeal") },
+                    onClick = { showAddMeal.value = true },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-16).dp)
@@ -112,6 +116,17 @@ fun App() {
         }
     ) {
         paddingValues ->
+        if ( showAddMeal.value ) {
+            AddIngredientDialog(
+                ingredients = viewModel.allFoodList.allMeals + viewModel.allFoodList.allSnacks,
+                onDismiss = { showAddMeal.value = false },
+                onConfirm = { ingredient, weight ->
+                    viewModel.getDayInfo(LocalDate.now()).addMeal(FinalMeal(ingredient, weight))
+                    showAddMeal.value = false
+                },
+                whatToAdd = "ingredient"
+            )
+        }
         NavHost(
             navController = navController,
             startDestination = "Home",
@@ -135,7 +150,7 @@ fun App() {
                     if ( isCustom ) {
                         val accDay = LocalDate.parse(dayToAdd!!.toString())
                         val newMeal =  Meal("Enter name", typeOfMeal = TypeOfMeal.CUSTOM_MEAL)
-                        MealView(newMeal, viewModel, navController, isToAdd = true, onAdd = { wasAdded ->
+                        MealView(newMeal, viewModel, navController, isToAdd = true, isCustom = true, onAdd = { wasAdded ->
                             if ( wasAdded ) {
                                 viewModel.getDayInfo(accDay).addMeal(FinalMeal(newMeal, newMeal.portionSize, newMeal.name))
                             }

@@ -64,7 +64,7 @@ import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavController, isToAdd: Boolean = false, onAdd: (wasAdded: Boolean) -> Unit = {}) {
+fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavController, isToAdd: Boolean = false, onAdd: (wasAdded: Boolean) -> Unit = {}, isCustom: Boolean = false) {
     var foodList = viewModel.allFoodList
     var deleteDialog = remember {
         mutableStateOf(false)
@@ -72,6 +72,8 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
     var showAddIngredient = remember { mutableStateOf(false) }
     var showAddSnack = remember { mutableStateOf(false) }
     var mealName = remember { mutableStateOf(meal.name) }
+    var showAddIngredientCustom = remember { mutableStateOf(false) }
+    var emptyIngredient = remember { mutableStateOf(Meal("New ingredient", TypeOfMeal.INGREDIENT)) }
 
     BackHandler {
         if (isToAdd) {
@@ -85,6 +87,19 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
     ) {
+        if ( showAddIngredientCustom.value ) {
+            EditSnackIngredient(
+                meal = emptyIngredient.value,
+                onDismiss = { wasAdded ->
+                    if (wasAdded) {
+                        meal.addIngredient(emptyIngredient.value, emptyIngredient.value.portionSize)
+                        emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
+                    }
+                    showAddIngredientCustom.value = false
+                },
+                isToAdd = true
+            )
+        }
         if (showAddIngredient.value) {
             AddIngredientDialog(
                 ingredients = foodList.allIngredients,
@@ -139,7 +154,10 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                 } else {
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                         if ( isToAdd ) {
-                            IconButton(onClick = { onAdd(true) }) {
+                            IconButton(onClick = {
+                                onAdd(true)
+                                navController.popBackStack()
+                            }) {
                                 Icon(
                                     Icons.Default.Check,
                                     contentDescription = "Add",
@@ -147,7 +165,10 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                                 )
                             }
                         } else {
-                            IconButton(onClick = { onAdd(true) }) {
+                            IconButton(onClick = {
+                                onAdd(true)
+                                navController.popBackStack()
+                            }) {
                                 Icon(
                                     Icons.Default.ChevronLeft,
                                     contentDescription = "Back",
@@ -266,6 +287,15 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Text("Add ingredient")
+                        }
+                        if ( isCustom ) {
+                            Button(
+                                onClick = { showAddIngredientCustom.value = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null)
+                                Text("Add custom ingredient")
+                            }
                         }
                     }
                 }

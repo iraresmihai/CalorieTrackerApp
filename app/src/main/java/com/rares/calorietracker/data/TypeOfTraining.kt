@@ -22,8 +22,4 @@ class TypeOfTraining {
     fun delTraining(name: String) {
         allTraining.remove(name)
     }
-
-    fun setTargetCalories(calories: Int) {
-        targetCalories = calories
-    }
 }

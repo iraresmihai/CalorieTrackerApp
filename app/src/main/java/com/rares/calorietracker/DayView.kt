@@ -105,7 +105,7 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                     dayInfo.addMeal(FinalMeal(ingredient, weight))
                     showAddMeal.value = false
                 },
-                whatToAdd = "ingredient"
+                whatToAdd = "food"
             )
         }
         if (settingsDialog.value) {

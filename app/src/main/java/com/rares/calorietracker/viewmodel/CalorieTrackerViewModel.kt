@@ -65,6 +65,7 @@ class CalorieTrackerViewModel : ViewModel() {
         typeOfTraining.addTraining("Pull 1", -1)
         typeOfTraining.addTraining("Legs 1", -1)
         typeOfTraining.addTraining("Rest", -1)
+        typeOfTraining.targetCalories = 2300
 
         // Today's day
         val today = java.time.LocalDate.now()

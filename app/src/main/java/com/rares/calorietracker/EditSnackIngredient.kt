@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -26,35 +28,35 @@ import com.rares.calorietracker.data.TypeOfMeal
 @Composable
 fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdded: Boolean) -> Unit) {
     var newProtein = remember {
-        mutableStateOf(meal.protein)
+        mutableStateOf(meal.protein.toString())
     }
 
     var newQualProtein = remember {
-        mutableStateOf(meal.qualProtein)
+        mutableStateOf(meal.qualProtein.toString())
     }
 
     var newCarbs = remember {
-        mutableStateOf(meal.carbs)
+        mutableStateOf(meal.carbs.toString())
     }
 
     var newFat = remember {
-        mutableStateOf(meal.fat)
+        mutableStateOf(meal.fat.toString())
     }
 
     var newSalt = remember {
-        mutableStateOf(meal.salt)
+        mutableStateOf(meal.salt.toString())
     }
 
     var newPrice = remember {
-        mutableStateOf(meal.price)
+        mutableStateOf(meal.price.toString())
     }
 
     var newCalories = remember {
-        mutableStateOf(meal.calories)
+        mutableStateOf(meal.calories.toString())
     }
 
     var newPortionSize = remember {
-        mutableStateOf(meal.portionSize)
+        mutableStateOf(meal.portionSize.toString())
     }
 
     var newName = remember {
@@ -62,14 +64,14 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
     }
 
     ModalBottomSheet(
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = false),
+        //properties = ModalBottomSheetProperties(shouldDismissOnBackPress = false),
         onDismissRequest = {onDismiss(false)},
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         Column(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(8.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -79,23 +81,21 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 else
                     Text("Create new snack", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
             else
-                Text("Change macros", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
-            if ( isToAdd ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Name: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                    OutlinedTextField(
-                        modifier = Modifier.weight(2f),
-                        value = meal.name,
-                        onValueChange = {
-                            newName.value = it
-                        },
-                        textStyle = MaterialTheme.typography.titleMedium
-                    )
-                }
+                Text("Change product info", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Name: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                OutlinedTextField(
+                    modifier = Modifier.weight(2f),
+                    value = newName.value,
+                    onValueChange = {
+                        newName.value = it
+                    },
+                    textStyle = MaterialTheme.typography.titleMedium
+                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -105,12 +105,9 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 Text("Protein: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     modifier = Modifier.weight(2f),
-                    value = meal.protein.toString(),
+                    value = newProtein.value,
                     onValueChange = {
-                        if ( it.toDoubleOrNull() != null )
-                            newProtein.value = it.toDouble()
-                        else
-                            newProtein.value = meal.protein
+                        newProtein.value = it
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -123,12 +120,9 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 Text("Quality protein: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     modifier = Modifier.weight(2f),
-                    value = meal.qualProtein.toString(),
+                    value = newQualProtein.value,
                     onValueChange = {
-                        if ( it.toDoubleOrNull() != null )
-                            newQualProtein.value = it.toDouble()
-                        else
-                            newQualProtein.value = meal.qualProtein
+                        newQualProtein.value = it
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -141,12 +135,9 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 Text("Carbs: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     modifier = Modifier.weight(2f),
-                    value = meal.carbs.toString(),
+                    value = newCarbs.value,
                     onValueChange = {
-                        if ( it.toDoubleOrNull() != null )
-                            newCarbs.value = it.toDouble()
-                        else
-                            newCarbs.value = meal.carbs
+                        newCarbs.value = it
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -159,12 +150,9 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 Text("Fat: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     modifier = Modifier.weight(2f),
-                    value = meal.fat.toString(),
+                    value = newFat.value,
                     onValueChange = {
-                        if ( it.toDoubleOrNull() != null )
-                            newFat.value = it.toDouble()
-                        else
-                            newFat.value = meal.fat
+                        newFat.value = it
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -177,12 +165,9 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 Text("Calories: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     modifier = Modifier.weight(2f),
-                    value = meal.calories.toString(),
+                    value = newCalories.value,
                     onValueChange = {
-                        if ( it.toDoubleOrNull() != null )
-                            newCalories.value = it.toDouble()
-                        else
-                            newCalories.value = meal.calories
+                        newCalories.value = it
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -195,12 +180,9 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 Text("Salt: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     modifier = Modifier.weight(2f),
-                    value = meal.salt.toString(),
+                    value = newSalt.value,
                     onValueChange = {
-                        if ( it.toDoubleOrNull() != null )
-                            newSalt.value = it.toDouble()
-                        else
-                            newSalt.value = meal.salt
+                        newSalt.value = it
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -213,12 +195,9 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 Text("Weight: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     modifier = Modifier.weight(2f),
-                    value = meal.portionSize.toString(),
+                    value = newPortionSize.value,
                     onValueChange = {
-                        if ( it.toDoubleOrNull() != null )
-                            newPortionSize.value = it.toDouble()
-                        else
-                            newPortionSize.value = meal.portionSize
+                        newPortionSize.value = it
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -231,12 +210,9 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 Text("Price: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     modifier = Modifier.weight(2f),
-                    value = meal.price.toString(),
+                    value = newPrice.value,
                     onValueChange = {
-                        if ( it.toDoubleOrNull() != null )
-                            newPrice.value = it.toDouble()
-                        else
-                            newPrice.value = meal.price
+                        newPrice.value = it
                     },
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -247,14 +223,14 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = {
-                    newProtein.value = meal.protein
-                    newQualProtein.value = meal.qualProtein
-                    newCarbs.value = meal.carbs
-                    newFat.value = meal.fat
-                    newSalt.value = meal.salt
-                    newPrice.value = meal.price
-                    newCalories.value = meal.calories
-                    newPortionSize.value = meal.portionSize
+                    newProtein.value = meal.protein.toString()
+                    newQualProtein.value = meal.qualProtein.toString()
+                    newCarbs.value = meal.carbs.toString()
+                    newFat.value = meal.fat.toString()
+                    newSalt.value = meal.salt.toString()
+                    newPrice.value = meal.price.toString()
+                    newCalories.value = meal.calories.toString()
+                    newPortionSize.value = meal.portionSize.toString()
                     newName.value = meal.name
                     onDismiss(false)
                 }) {
@@ -262,7 +238,16 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 }
                 TextButton(onClick = {
                     meal.name = newName.value
-                    meal.updInfo(newCalories.value, newFat.value, newCarbs.value, newProtein.value, newQualProtein.value, newPrice.value, newPortionSize.value, newSalt.value)
+                    meal.updInfo(
+                        newCalories.value.toDoubleOrNull() ?: meal.calories,
+                        newFat.value.toDoubleOrNull() ?: meal.fat,
+                        newCarbs.value.toDoubleOrNull() ?: meal.carbs,
+                        newProtein.value.toDoubleOrNull() ?: meal.protein,
+                        newQualProtein.value.toDoubleOrNull() ?: meal.qualProtein,
+                        newPrice.value.toDoubleOrNull() ?: meal.price,
+                        (newPortionSize.value.toDoubleOrNull() ?: meal.portionSize).let { if (it == 0.0) 100.0 else it },
+                        newSalt.value.toDoubleOrNull() ?: meal.salt
+                    )
 
                     onDismiss(true)
                 }) {

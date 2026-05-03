@@ -26,17 +26,18 @@ private val LightColorScheme = lightColorScheme(
     secondary = PurpleGrey40,
     tertiary = Pink40,
     surfaceContainer = Color(0xFF636870),
-    surface = Color(0xFFF2F5F5),
-    background = Color(0xFF0A0A0A)
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    //surfaceContainer = Color(0xFFF2F5F5),
+    //surface = Color(0xFFF2F5F5),
+    surface =  Color(0xFF636870),
+    background = Color(0xFF0A0A0A),
+
+    //background = Color(0xFFFFFBFE),
+    //surface = Color(0xFFFFFBFE),
+    onPrimary = Color(0xFFF2F5F5),
+    onSecondary = Color(0xFFF2F5F5),
+    onTertiary = Color(0xFFF2F5F5),
+    onBackground = Color(0xFFF2F5F5),
+    onSurface = Color(0xFFF2F5F5),
 )
 
 @Composable
