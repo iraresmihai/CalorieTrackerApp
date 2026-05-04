@@ -72,16 +72,16 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
         mutableStateOf(false)
     }
     var rating = remember {
-        mutableStateOf(dayInfo.workoutRating)
+        mutableStateOf(dayInfo.workoutRating.toString())
     }
     var trainingTime = remember {
-        mutableStateOf(dayInfo.trainingTime)
+        mutableStateOf(dayInfo.trainingTime.toString())
     }
     var nrSteps = remember {
-        mutableStateOf(dayInfo.stepCount)
+        mutableStateOf(dayInfo.stepCount.toString())
     }
     var weight = remember {
-        mutableStateOf(dayInfo.weight)
+        mutableStateOf(dayInfo.weight.toString())
     }
     var expandedTrainingName = remember {
         mutableStateOf(false)
@@ -114,6 +114,11 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                 onDismissRequest = {
                     settingsDialog.value = false
                     expandedTrainingName.value = false
+                    weight.value = dayInfo.weight.toString()
+                    trainingTime.value = dayInfo.trainingTime.toString()
+                    rating.value = dayInfo.workoutRating.toString()
+                    nrSteps.value = dayInfo.stepCount.toString()
+                    selectedTraining.value = dayInfo.trainingName
                 },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                 containerColor = MaterialTheme.colorScheme.surface,
@@ -171,12 +176,9 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                         Text("Training rating: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         OutlinedTextField(
                             modifier = Modifier.weight(2f),
-                            value = rating.value.toString(),
+                            value = rating.value,
                             onValueChange = {
-                                if ( it.toIntOrNull() != null && 1 <= it.toInt() && it.toInt() <=10 )
-                                    rating.value = it.toInt()
-                                else
-                                    rating.value = dayInfo.workoutRating
+                                rating.value = it
                             },
                             textStyle = MaterialTheme.typography.titleMedium
                         )
@@ -189,12 +191,9 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                         Text("Training time: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         OutlinedTextField(
                             modifier = Modifier.weight(2f),
-                            value = trainingTime.value.toString(),
+                            value = trainingTime.value,
                             onValueChange = {
-                                if ( it.toIntOrNull() != null )
-                                    trainingTime.value = it.toInt()
-                                else
-                                    trainingTime.value = dayInfo.trainingTime
+                                trainingTime.value = it
                             },
                             textStyle = MaterialTheme.typography.titleMedium
                         )
@@ -207,12 +206,9 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                         Text("Nr. steps: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         OutlinedTextField(
                             modifier = Modifier.weight(2f),
-                            value = nrSteps.value.toString(),
+                            value = nrSteps.value,
                             onValueChange = {
-                                if ( it.toIntOrNull() != null )
-                                    nrSteps.value = it.toInt()
-                                else
-                                    nrSteps.value = dayInfo.stepCount
+                                nrSteps.value = it
                             },
                             textStyle = MaterialTheme.typography.titleMedium
                         )
@@ -227,10 +223,7 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                             modifier = Modifier.weight(2f),
                             value = weight.value.toString(),
                             onValueChange = {
-                                if ( it.toDoubleOrNull() != null )
-                                    weight.value = it.toDouble()
-                                else
-                                    weight.value = dayInfo.weight
+                                weight.value = it
                             },
                             textStyle = MaterialTheme.typography.titleMedium
                         )
@@ -242,19 +235,32 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                         TextButton(onClick = {
                             settingsDialog.value = false
                             expandedTrainingName.value = false
-                            weight.value = dayInfo.weight
-                            trainingTime.value = dayInfo.trainingTime
-                            rating.value = dayInfo.workoutRating
-                            nrSteps.value = dayInfo.stepCount
+                            weight.value = dayInfo.weight.toString()
+                            trainingTime.value = dayInfo.trainingTime.toString()
+                            rating.value = dayInfo.workoutRating.toString()
+                            nrSteps.value = dayInfo.stepCount.toString()
                             selectedTraining.value = dayInfo.trainingName
                         }) {
                             Text("Dismiss")
                         }
                         TextButton(onClick = {
-                            dayInfo.weight = weight.value
-                            dayInfo.trainingTime = trainingTime.value
-                            dayInfo.workoutRating = rating.value
-                            dayInfo.stepCount = nrSteps.value
+                            if ( weight.value.toDoubleOrNull() == null ) {
+                                weight.value = dayInfo.weight.toString()
+                            }
+                            if ( trainingTime.value.toIntOrNull() == null ) {
+                                trainingTime.value = dayInfo.trainingTime.toString()
+                            }
+                            if ( rating.value.toIntOrNull() == null || !(1 <= rating.value.toInt() && rating.value.toInt() <= 10) ) {
+                                rating.value = dayInfo.workoutRating.toString()
+                            }
+                            if ( nrSteps.value.toIntOrNull() == null ) {
+                                nrSteps.value = dayInfo.stepCount.toString()
+                            }
+
+                            dayInfo.weight = weight.value.toDouble()
+                            dayInfo.trainingTime = trainingTime.value.toInt()
+                            dayInfo.workoutRating = rating.value.toInt()
+                            dayInfo.stepCount = nrSteps.value.toInt()
                             dayInfo.trainingName = selectedTraining.value
 
                             expandedTrainingName.value = false

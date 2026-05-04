@@ -138,6 +138,20 @@ fun App() {
             composable("Recipes") {
                 RecipesView(viewModel.allFoodList, navController)
             }
+            composable("MealInDay/{day}/{mealId}") { entry ->
+                val day = entry.arguments?.getString("day")?.let {
+                    if (it == "null") null else LocalDate.parse(it)
+                }
+                val mealId = entry.arguments?.getString("mealId")?.toInt() ?: -1
+                val accMeal = viewModel.getDayInfo(day!!).currentFood[mealId]
+
+                MealView(accMeal.meal, viewModel, navController, portionSize = accMeal.weightEaten,  onAdd = { wasAdded ->
+                    if ( !wasAdded ) {
+                        viewModel.getDayInfo(day).delMeal(accMeal)
+                    }
+                    viewModel.getDayInfo(day).recalcVal()
+                })
+            }
             composable("Meal/{isToAdd}/{isCustom}/{dayToAdd}/{idInList}") { entry ->
                 val isToAdd = entry.arguments?.getString("isToAdd")?.toBoolean() ?: false
                 val isCustom = entry.arguments?.getString("isCustom")?.toBoolean() ?: false

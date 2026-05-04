@@ -64,7 +64,8 @@ import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavController, isToAdd: Boolean = false, onAdd: (wasAdded: Boolean) -> Unit = {}, isCustom: Boolean = false) {
+fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavController, isToAdd: Boolean = false, onAdd: (wasAdded: Boolean) -> Unit = {}, isCustom: Boolean = false, portionSize: Double = -1.0) {
+    /* TODO MEAL VIEW FOR MEAL IN A DAY */
     var foodList = viewModel.allFoodList
     var deleteDialog = remember {
         mutableStateOf(false)
