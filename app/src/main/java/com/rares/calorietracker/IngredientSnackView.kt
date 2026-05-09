@@ -45,11 +45,12 @@ import androidx.compose.ui.unit.dp
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
+import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun IngredientSnackView(meal: Meal, onDelete: () -> Unit = {}) {
+fun IngredientSnackView(meal: Meal, onDelete: () -> Unit = {}, viewModel: CalorieTrackerViewModel) {
     var settingsDialog = remember {
         mutableStateOf(false)
     }
@@ -65,7 +66,15 @@ fun IngredientSnackView(meal: Meal, onDelete: () -> Unit = {}) {
         if (settingsDialog.value) {
             EditSnackIngredient(
                 meal = meal,
-                onDismiss = { wasAdded -> settingsDialog.value = false }
+                onDismiss = { wasAdded ->
+                    settingsDialog.value = false
+                    if (wasAdded) {
+                        viewModel.saveMeal(meal)
+                        for ( x in meal.mealsWhichContain ) {
+                            viewModel.saveMeal(x)
+                        }
+                    }
+                }
             )
         }
         if ( deleteDialog.value ) {
@@ -206,6 +215,6 @@ fun IngredientSnackPreview() {
     }
     //chicken.mealsWhichContain.add(chicken)
     MyApplicationTheme {
-        IngredientSnackView(meal = chicken)
+        //IngredientSnackView(meal = chicken)
     }
 }

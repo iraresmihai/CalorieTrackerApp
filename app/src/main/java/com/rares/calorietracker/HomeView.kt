@@ -2,8 +2,11 @@ package com.rares.calorietracker
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
@@ -11,6 +14,8 @@ import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
 import java.time.LocalDate
 import com.rares.calorietracker.DayView
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -31,28 +36,38 @@ fun HomeView(viewModel: CalorieTrackerViewModel, navController: NavController) {
         }
     }
 
-    HorizontalPager(
-        state = pagerState,
-        ) { page ->
+    HorizontalPager(state = pagerState) { page ->
         val offset = page - initialPage
         val date = today.plusDays(offset.toLong())
-        val dayInfo = viewModel.getDayInfo(date)
-        DayView(
-            dayInfo = dayInfo,
-            allTrainingNames = viewModel.typeOfTraining,
-            foodList = viewModel.allFoodList,
-            navController = navController,
-            onPreviousDay = {
-                coroutineScope.launch {
-                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                }
-            },
-            onNextDay = {
-                coroutineScope.launch {
-                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                }
-            },
-            isToday = page == initialPage
-        )
+
+        LaunchedEffect(date) {
+            viewModel.getDayInfo(date)
+        }
+
+        val dayInfo = viewModel.allDays[date]
+
+        if (dayInfo != null) {
+            DayView(
+                dayInfo = dayInfo,
+                allTrainingNames = viewModel.typeOfTraining,
+                foodList = viewModel.allFoodList,
+                navController = navController,
+                onPreviousDay = {
+                    coroutineScope.launch {
+                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                    }
+                },
+                onNextDay = {
+                    coroutineScope.launch {
+                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                    }
+                },
+                isToday = page == initialPage, viewModel = viewModel
+            )
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
     }
 }

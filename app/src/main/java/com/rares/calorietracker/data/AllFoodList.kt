@@ -1,8 +1,9 @@
 package com.rares.calorietracker.data
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 
-class AllFoodList {
+class AllFoodList(var id: String = "") {
     val allMeals = mutableStateListOf<Meal>()
     val allSnacks = mutableStateListOf<Meal>()
     val allIngredients = mutableStateListOf<Meal>()

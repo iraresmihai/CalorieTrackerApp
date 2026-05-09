@@ -4,5 +4,6 @@ enum class TypeOfMeal(val displayName: String) {
     CUSTOM_MEAL("Custom meal"),
     SNACK("Snack"),
     INGREDIENT("Ingredient"),
-    BASIC_MEAL("Meal")
+    BASIC_MEAL("Meal"),
+    CUSTOM_INGREDIENT("Custom ingredient")
 }

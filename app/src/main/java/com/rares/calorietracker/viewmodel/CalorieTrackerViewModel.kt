@@ -11,77 +11,46 @@ import com.rares.calorietracker.data.TypeOfTraining
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
 import com.rares.calorietracker.data.FinalMeal
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
+import com.rares.calorietracker.model.FSDayInfo
+import com.rares.calorietracker.repository.CalorieTrackerRepository
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 class CalorieTrackerViewModel : ViewModel() {
-    var allFoodList by mutableStateOf(AllFoodList())
+    val allFoodList = AllFoodList()
+    val allMealInfo = mutableMapOf<String, Meal>()
+    val allDays = mutableStateMapOf<LocalDate, DayInfo>()
     var typeOfTraining by mutableStateOf(TypeOfTraining())
-    var allDays = mutableStateMapOf<LocalDate, DayInfo>()
+
+    private val repository = CalorieTrackerRepository()
+
     init {
-        // Ingredients
-        val chicken = Meal("Chicken breast", TypeOfMeal.INGREDIENT).apply {
-            calories = 165.0; protein = 31.0; qualProtein = 31.0
-            carbs = 0.0; fat = 3.6; salt = 0.1; price = 0.8; portionSize = 100.0
-        }
-        val rice = Meal("Rice", TypeOfMeal.INGREDIENT).apply {
-            calories = 130.0; protein = 2.7; qualProtein = 2.7
-            carbs = 28.0; fat = 0.3; salt = 0.0; price = 0.2; portionSize = 100.0
-        }
-        val oliveOil = Meal("Olive oil", TypeOfMeal.INGREDIENT).apply {
-            calories = 884.0; protein = 0.0; qualProtein = 0.0
-            carbs = 0.0; fat = 100.0; salt = 0.0; price = 1.0; portionSize = 100.0
-        }
-        allFoodList.addIngredient(chicken)
-        allFoodList.addIngredient(rice)
-        allFoodList.addIngredient(oliveOil)
+        viewModelScope.launch {
+            // load food list first since days depend on it
+            repository.loadAllFoodList(allFoodList, allMealInfo)
 
-        // Snacks
-        val proteinBar = Meal("Protein bar", TypeOfMeal.SNACK).apply {
-            calories = 220.0; protein = 20.0; qualProtein = 18.0
-            carbs = 25.0; fat = 7.0; salt = 0.3; price = 1.5; portionSize = 60.0
+            // load training info
+            typeOfTraining = repository.loadTypeOfTraining()
         }
-        val banana = Meal("Banana", TypeOfMeal.SNACK).apply {
-            calories = 89.0; protein = 1.1; qualProtein = 1.0
-            carbs = 23.0; fat = 0.3; salt = 0.0; price = 0.3; portionSize = 100.0
-        }
-        allFoodList.addSnack(proteinBar)
-        allFoodList.addSnack(banana)
-
-        // Meals
-        val chickenRiceBowl = Meal("Chicken Rice Bowl", TypeOfMeal.BASIC_MEAL).apply {
-            addIngredient(chicken, 200.0)
-            addIngredient(rice, 150.0)
-            addIngredient(oliveOil, 10.0)
-        }
-        allFoodList.addMeal(chickenRiceBowl)
-
-        // Training
-        typeOfTraining.addTraining("Push 1", -1)
-        typeOfTraining.addTraining("Push 2", -1)
-        typeOfTraining.addTraining("Pull 1", -1)
-        typeOfTraining.addTraining("Legs 1", -1)
-        typeOfTraining.addTraining("Rest", -1)
-        typeOfTraining.targetCalories = 2300
-
-        // Today's day
-        val today = java.time.LocalDate.now()
-        val todayInfo = getDayInfo(today)
-        todayInfo.trainingName = "Push 1"
-        todayInfo.workoutRating = 8
-        todayInfo.weight = 66.0
-        todayInfo.stepCount = 9000
-        todayInfo.trainingTime = 75
-        todayInfo.addMeal(FinalMeal(chickenRiceBowl, 360.0))
-        todayInfo.addMeal(FinalMeal(proteinBar, 60.0))
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getDayInfo(date: LocalDate): DayInfo {
+    suspend fun getDayInfo(date: LocalDate): DayInfo {
         if ( allDays.containsKey(date) ) {
+            return allDays[date]!!
+        }
+        val fsDays = mutableMapOf<LocalDate, FSDayInfo>()
+        repository.loadFsDays(fsDays, listOf(date))
+
+        if ( !fsDays.isEmpty() ) {
+            allDays[date] = repository.fsToDayInfo(fsDays[date]!!, allMealInfo)
             return allDays[date]!!
         }
         var lastTraining: String? = null
@@ -112,6 +81,87 @@ class CalorieTrackerViewModel : ViewModel() {
 
         allDays[date] = DayInfo(date, ans, typeOfTraining.targetCalories.toDouble())
 
+        allDays[date]!!.id = repository.saveDay(allDays[date]!!)
+
         return allDays[date]!!
+    }
+
+    fun saveMeal(meal: Meal) {
+        viewModelScope.launch {
+            meal.id = repository.saveMeal(meal)
+            if ( !allMealInfo.containsKey(meal.id) ) {
+                allMealInfo[meal.id] = meal
+                if ( meal.typeOfMeal == TypeOfMeal.INGREDIENT ) {
+                    allFoodList.addIngredient(meal)
+                } else if ( meal.typeOfMeal == TypeOfMeal.SNACK ) {
+                    allFoodList.addSnack(meal)
+                } else if ( meal.typeOfMeal == TypeOfMeal.BASIC_MEAL ) {
+                    allFoodList.addMeal(meal)
+                }
+            }
+        }
+    }
+
+    suspend fun saveMealSuspended(meal: Meal) {
+        meal.id = repository.saveMeal(meal)
+        if ( !allMealInfo.containsKey(meal.id) ) {
+            allMealInfo[meal.id] = meal
+            if ( meal.typeOfMeal == TypeOfMeal.INGREDIENT ) {
+                allFoodList.addIngredient(meal)
+            } else if ( meal.typeOfMeal == TypeOfMeal.SNACK ) {
+                allFoodList.addSnack(meal)
+            } else if ( meal.typeOfMeal == TypeOfMeal.BASIC_MEAL ) {
+                allFoodList.addMeal(meal)
+            }
+        }
+    }
+
+    fun saveDay(dayInfo: DayInfo) {
+        viewModelScope.launch {
+            dayInfo.id = repository.saveDay(dayInfo)
+            if ( !allDays.containsKey(dayInfo.date) ) {
+                allDays[dayInfo.date] = dayInfo
+            }
+        }
+    }
+
+    fun delMeal(meal: Meal) {
+        if ( meal.typeOfMeal == TypeOfMeal.CUSTOM_MEAL || meal.typeOfMeal == TypeOfMeal.CUSTOM_INGREDIENT ) {
+            return
+        }
+        if ( meal.typeOfMeal == TypeOfMeal.BASIC_MEAL ) {
+            meal.typeOfMeal = TypeOfMeal.CUSTOM_MEAL
+            saveMeal(meal)
+            return
+        }
+        meal.typeOfMeal = TypeOfMeal.CUSTOM_INGREDIENT
+        saveMeal(meal)
+    }
+
+    suspend fun makeDeepCopy(meal: Meal) : Meal { //automatically saves the deep copy to the database
+        var ans = meal.copy()
+        ans.id = ""
+        if ( ans.typeOfMeal == TypeOfMeal.BASIC_MEAL ) {
+            ans.typeOfMeal = TypeOfMeal.CUSTOM_MEAL
+        }
+        if ( ans.typeOfMeal == TypeOfMeal.INGREDIENT || ans.typeOfMeal == TypeOfMeal.SNACK ) {
+            ans.typeOfMeal = TypeOfMeal.CUSTOM_INGREDIENT
+            saveMealSuspended(ans)
+            return ans
+        }
+        ans.ingredients.clear()
+        for ( x in meal.ingredients ) {
+            ans.addIngredient(makeDeepCopy(x.meal), x.weightEaten)
+        }
+        saveMealSuspended(ans)
+
+        return ans
+    }
+
+    fun saveTypeOfTraining(typeOfTraining: TypeOfTraining) {
+        viewModelScope.launch {
+            typeOfTraining.id = repository.saveTypeOfTraining(typeOfTraining)
+            this@CalorieTrackerViewModel.typeOfTraining = typeOfTraining
+        }
     }
 }

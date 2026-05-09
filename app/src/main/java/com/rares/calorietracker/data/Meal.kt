@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.setValue
 
-data class Meal(val initialName : String, val typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTOM_MEAL) {
+data class Meal(val initialName : String, var typeOfMeal: TypeOfMeal = TypeOfMeal.CUSTOM_MEAL, var id: String = "") {
     //a basic meal/custom meal can contain only ingredients and snacks
     var name by mutableStateOf(initialName)
     var calories by mutableDoubleStateOf(0.0)
@@ -73,14 +73,14 @@ data class Meal(val initialName : String, val typeOfMeal: TypeOfMeal = TypeOfMea
     }
 
     fun isFinalMeal() : Boolean {
-        return typeOfMeal == TypeOfMeal.INGREDIENT || typeOfMeal == TypeOfMeal.SNACK
+        return typeOfMeal == TypeOfMeal.INGREDIENT || typeOfMeal == TypeOfMeal.SNACK || typeOfMeal == TypeOfMeal.CUSTOM_INGREDIENT
     }
 
     fun addIngredient(meal: Meal, portionSize: Double) {
         if ( isFinalMeal() ) {
             return
         }
-        if ( typeOfMeal != TypeOfMeal.CUSTOM_MEAL ) {
+        if ( typeOfMeal != TypeOfMeal.CUSTOM_MEAL && meal.typeOfMeal != TypeOfMeal.CUSTOM_INGREDIENT ) {
             meal.mealsWhichContain.add(this)
         }
 

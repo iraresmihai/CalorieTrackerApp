@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "286636189083",
+    "project_id": "testforcal-8c32f",
+    "storage_bucket": "testforcal-8c32f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:286636189083:android:38e6b87f2d1014a0466d3e",
+        "android_client_info": {
+          "package_name": "com.rares.calorietracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0LlIRbMCUNTiN_q72tXaqK0F5-7T5DnI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -56,15 +56,18 @@ import androidx.compose.material3.ModalBottomSheetDefaults
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.rares.calorietracker.data.AllFoodList
+import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoodList, navController: NavController,     onPreviousDay: () -> Unit = {},
             onNextDay: () -> Unit = {},
-            isToday: Boolean = false
+            isToday: Boolean = false, viewModel: CalorieTrackerViewModel
 ) {
     val ringColor = MaterialTheme.colorScheme.surfaceContainer
 
@@ -94,6 +97,8 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
         mutableStateOf(false)
     }
 
+    val coroutineScope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
@@ -102,7 +107,11 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                 ingredients = foodList.allMeals + foodList.allSnacks,
                 onDismiss = { showAddMeal.value = false },
                 onConfirm = { ingredient, weight ->
-                    dayInfo.addMeal(FinalMeal(ingredient, weight))
+                    coroutineScope.launch {
+                        val aux = viewModel.makeDeepCopy(ingredient)
+                        dayInfo.addMeal(FinalMeal(ingredient, weight))
+                        viewModel.saveDay(dayInfo)
+                    }
                     showAddMeal.value = false
                 },
                 whatToAdd = "food"
@@ -262,6 +271,8 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                             dayInfo.workoutRating = rating.value.toInt()
                             dayInfo.stepCount = nrSteps.value.toInt()
                             dayInfo.trainingName = selectedTraining.value
+
+                            viewModel.saveDay(dayInfo)
 
                             expandedTrainingName.value = false
                             settingsDialog.value = false
@@ -478,6 +489,7 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                 items(dayInfo.currentFood.size) {
                     FoodView(dayInfo.currentFood[it], onDelete = {
                         dayInfo.delMeal(dayInfo.currentFood[it])
+                        viewModel.saveDay(dayInfo)
                     })
                 }
             }

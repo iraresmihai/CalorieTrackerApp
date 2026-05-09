@@ -58,8 +58,10 @@ import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
 import java.time.LocalDate
 import androidx.compose.runtime.State
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -75,6 +77,7 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
     var mealName = remember { mutableStateOf(meal.name) }
     var showAddIngredientCustom = remember { mutableStateOf(false) }
     var emptyIngredient = remember { mutableStateOf(Meal("New ingredient", TypeOfMeal.INGREDIENT)) }
+    var coroutineScope = rememberCoroutineScope()
 
     BackHandler {
         if (isToAdd) {
@@ -93,8 +96,15 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                 meal = emptyIngredient.value,
                 onDismiss = { wasAdded ->
                     if (wasAdded) {
-                        meal.addIngredient(emptyIngredient.value, emptyIngredient.value.portionSize)
-                        emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
+                        coroutineScope.launch {
+                            val aux = viewModel.makeDeepCopy(emptyIngredient.value)
+                            meal.addIngredient(
+                                emptyIngredient.value,
+                                emptyIngredient.value.portionSize
+                            )
+                            viewModel.saveMeal(meal)
+                            emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
+                        }
                     }
                     showAddIngredientCustom.value = false
                 },
@@ -106,7 +116,9 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                 ingredients = foodList.allIngredients,
                 onDismiss = { showAddIngredient.value = false },
                 onConfirm = { ingredient, weight ->
+                    val aux = ingredient
                     meal.addIngredient(ingredient, weight)
+                    viewModel.saveMeal(meal)
                     showAddIngredient.value = false
                 },
                 whatToAdd = "ingredient"
@@ -117,7 +129,9 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                 ingredients = foodList.allSnacks,
                 onDismiss = { showAddSnack.value = false },
                 onConfirm = { ingredient, weight ->
+                    val aux = ingredient
                     meal.addIngredient(ingredient, weight)
+                    viewModel.saveMeal(meal)
                     showAddSnack.value = false
                 },
                 whatToAdd = "snack"
@@ -304,6 +318,7 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                     FoodView(meal.ingredients[it], onDelete = {
                         meal.ingredients.removeAt(it)
                         meal.recalcInfo()
+                        viewModel.saveMeal(meal)
                     })
                 }
             }

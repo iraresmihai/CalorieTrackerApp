@@ -1,5 +1,7 @@
 package com.rares.calorietracker
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,11 +37,14 @@ import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.State
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipesView(allFoodList: AllFoodList, navController: NavController) {
+fun RecipesView(allFoodList: AllFoodList, navController: NavController, viewModel: CalorieTrackerViewModel) {
     val tabs = listOf("Ingredients", "Meals", "Snacks")
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
@@ -71,18 +76,20 @@ fun RecipesView(allFoodList: AllFoodList, navController: NavController) {
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> IngredientsView(allFoodList, navController)
-                1 -> MealsView(allFoodList, navController)
-                2 -> SnacksView(allFoodList, navController)
+                0 -> IngredientsView(allFoodList, navController, viewModel)
+                1 -> MealsView(allFoodList, navController, viewModel)
+                2 -> SnacksView(allFoodList, navController, viewModel)
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun IngredientsView(allFoodList: AllFoodList, navController: NavController) {
+fun IngredientsView(allFoodList: AllFoodList, navController: NavController, viewModel: CalorieTrackerViewModel) {
     var showAdd = remember { mutableStateOf(false) }
     val emptyIngredient = remember { mutableStateOf(Meal("New ingredient", TypeOfMeal.INGREDIENT)) }
+    var coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -99,8 +106,12 @@ fun IngredientsView(allFoodList: AllFoodList, navController: NavController) {
                 meal = emptyIngredient.value,
                 onDismiss = { wasAdded ->
                     if (wasAdded) {
-                        allFoodList.addSnack(emptyIngredient.value)
-                        emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
+                        coroutineScope.launch {
+                            val aux = viewModel.makeDeepCopy(emptyIngredient.value)
+                            allFoodList.addSnack(aux)
+
+                            emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
+                        }
                     }
                     showAdd.value = false
                 },
@@ -120,7 +131,7 @@ fun IngredientsView(allFoodList: AllFoodList, navController: NavController) {
 }
 
 @Composable
-fun MealsView(allFoodList: AllFoodList, navController: NavController) {
+fun MealsView(allFoodList: AllFoodList, navController: NavController, viewModel: CalorieTrackerViewModel) {
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -143,10 +154,12 @@ fun MealsView(allFoodList: AllFoodList, navController: NavController) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SnacksView(allFoodList: AllFoodList, navController: NavController) {
+fun SnacksView(allFoodList: AllFoodList, navController: NavController, viewModel: CalorieTrackerViewModel) {
     var showAdd = remember { mutableStateOf(false) }
     val emptySnack = remember { mutableStateOf(Meal("New snack", TypeOfMeal.SNACK)) }
+    var coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -163,8 +176,11 @@ fun SnacksView(allFoodList: AllFoodList, navController: NavController) {
                 meal = emptySnack.value,
                 onDismiss = { wasAdded ->
                     if (wasAdded) {
-                        allFoodList.addSnack(emptySnack.value)
-                        emptySnack.value = Meal("New snack", TypeOfMeal.SNACK)
+                        coroutineScope.launch {
+                            val aux = viewModel.makeDeepCopy(emptySnack.value)
+                            allFoodList.addSnack(aux)
+                            emptySnack.value = Meal("New snack", TypeOfMeal.SNACK)
+                        }
                     }
                     showAdd.value = false
                 },
@@ -223,6 +239,6 @@ fun RecipesViewPreview() {
     val navController = rememberNavController()
 
     MyApplicationTheme {
-        RecipesView(allFoodList = fakeAllFoodList, navController)
+        //RecipesView(allFoodList = fakeAllFoodList, navController)
     }
 }

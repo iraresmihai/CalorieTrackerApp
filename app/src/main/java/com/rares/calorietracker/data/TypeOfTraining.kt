@@ -1,7 +1,9 @@
 package com.rares.calorietracker.data
 
-class TypeOfTraining {
-    val allTraining = mutableListOf<String>()
+import androidx.compose.runtime.mutableStateListOf
+
+class TypeOfTraining (var id: String = "") {
+    val allTraining = mutableStateListOf<String>()
     var targetCalories = 0
 
     fun addTraining(name: String, pos: Int) {
