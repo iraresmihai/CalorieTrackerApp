@@ -108,8 +108,8 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                 onDismiss = { showAddMeal.value = false },
                 onConfirm = { ingredient, weight ->
                     coroutineScope.launch {
-                        val aux = viewModel.makeDeepCopy(ingredient)
-                        dayInfo.addMeal(FinalMeal(ingredient, weight))
+                        val aux = viewModel.makeDeepCopy(ingredient, makeCustom = true, weightEaten = weight)
+                        dayInfo.addMeal(aux)
                         viewModel.saveDay(dayInfo)
                     }
                     showAddMeal.value = false
@@ -487,10 +487,10 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                     }
                 }
                 items(dayInfo.currentFood.size) {
-                    FoodView(dayInfo.currentFood[it], onDelete = {
+                    FoodViewInDay(dayInfo.currentFood[it], onDelete = {
                         dayInfo.delMeal(dayInfo.currentFood[it])
                         viewModel.saveDay(dayInfo)
-                    })
+                    }, navController = navController, day = dayInfo.date.toString())
                 }
             }
         }

@@ -1,6 +1,7 @@
 package com.rares.calorietracker.viewmodel
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -49,8 +50,9 @@ class CalorieTrackerViewModel : ViewModel() {
         val fsDays = mutableMapOf<LocalDate, FSDayInfo>()
         repository.loadFsDays(fsDays, listOf(date))
 
-        if ( !fsDays.isEmpty() ) {
-            allDays[date] = repository.fsToDayInfo(fsDays[date]!!, allMealInfo)
+        val fsDay = fsDays[date]
+        if ( fsDay != null && fsDay.date.isNotEmpty() ) {
+            allDays[date] = repository.fsToDayInfo(fsDay, allMealInfo)
             return allDays[date]!!
         }
         var lastTraining: String? = null
@@ -125,34 +127,65 @@ class CalorieTrackerViewModel : ViewModel() {
         }
     }
 
-    fun delMeal(meal: Meal) {
+    suspend fun delMeal(meal: Meal) {
         if ( meal.typeOfMeal == TypeOfMeal.CUSTOM_MEAL || meal.typeOfMeal == TypeOfMeal.CUSTOM_INGREDIENT ) {
             return
         }
         if ( meal.typeOfMeal == TypeOfMeal.BASIC_MEAL ) {
+            allFoodList.delMeal(meal)
             meal.typeOfMeal = TypeOfMeal.CUSTOM_MEAL
             saveMeal(meal)
             return
         }
+        if ( meal.typeOfMeal == TypeOfMeal.INGREDIENT ) {
+            //allFoodList.delIngredient(meal)
+        } else if ( meal.typeOfMeal == TypeOfMeal.SNACK ) {
+            //allFoodList.delSnack(meal)
+        }
         meal.typeOfMeal = TypeOfMeal.CUSTOM_INGREDIENT
-        saveMeal(meal)
+        saveMealSuspended(meal)
+        allFoodList.delSnack(meal)
+        allFoodList.delIngredient(meal)
+
     }
 
-    suspend fun makeDeepCopy(meal: Meal) : Meal { //automatically saves the deep copy to the database
+    suspend fun makeDeepCopy(meal: Meal, makeCustom: Boolean = true, weightEaten: Double = meal.portionSize) : Meal { //automatically saves the deep copy to the database
+        Log.d("DEBUG", "makeDeepCopy, typeOfMeal = ${meal.typeOfMeal}, calories = ${meal.calories}")
         var ans = meal.copy()
+        Log.d("DEBUG", "makeDeepCopy, typeOfMeal = ${ans.typeOfMeal}, calories = ${ans.calories}, mealcal = ${meal.calories}")
         ans.id = ""
-        if ( ans.typeOfMeal == TypeOfMeal.BASIC_MEAL ) {
+        if ( makeCustom && ans.typeOfMeal == TypeOfMeal.BASIC_MEAL) {
             ans.typeOfMeal = TypeOfMeal.CUSTOM_MEAL
         }
-        if ( ans.typeOfMeal == TypeOfMeal.INGREDIENT || ans.typeOfMeal == TypeOfMeal.SNACK ) {
-            ans.typeOfMeal = TypeOfMeal.CUSTOM_INGREDIENT
+        if (ans.typeOfMeal == TypeOfMeal.INGREDIENT || ans.typeOfMeal == TypeOfMeal.SNACK || ans.typeOfMeal == TypeOfMeal.CUSTOM_INGREDIENT) {
+            if ( makeCustom )
+                ans.typeOfMeal = TypeOfMeal.CUSTOM_INGREDIENT
+            if ( weightEaten != ans.portionSize ) {
+                ans.calories = ans.calories * weightEaten / ans.portionSize
+                ans.protein = ans.protein * weightEaten / ans.portionSize
+                ans.qualProtein = ans.qualProtein * weightEaten / ans.portionSize
+                ans.carbs = ans.carbs * weightEaten / ans.portionSize
+                ans.fat = ans.fat * weightEaten / ans.portionSize
+                ans.salt = ans.salt * weightEaten / ans.portionSize
+                ans.price = ans.price * weightEaten / ans.portionSize
+                ans.portionSize = weightEaten
+            }
             saveMealSuspended(ans)
             return ans
         }
         ans.ingredients.clear()
+        ans.recalcInfo()
         for ( x in meal.ingredients ) {
-            ans.addIngredient(makeDeepCopy(x.meal), x.weightEaten)
+            if ( weightEaten != 0.0 ) {
+                ans.addIngredient(
+                    makeDeepCopy(x.meal),
+                    x.weightEaten * weightEaten / meal.portionSize
+                )
+            } else {
+                ans.addIngredient(makeDeepCopy(x.meal), 0.0)
+            }
         }
+
         saveMealSuspended(ans)
 
         return ans

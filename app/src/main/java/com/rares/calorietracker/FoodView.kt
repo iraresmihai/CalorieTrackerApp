@@ -30,9 +30,11 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Interval
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 
 @Composable
 fun FoodView(meal: FinalMeal, onDelete: () -> Unit = {}){
@@ -168,6 +170,6 @@ fun foodViewPreview() {
 
     val fakeFinalMeal = FinalMeal(chickenRiceBowl, chickenRiceBowl.portionSize)
     MyApplicationTheme {
-        FoodView(meal = fakeFinalMeal,)
+        //FoodView(meal = fakeFinalMeal,)
     }
 }

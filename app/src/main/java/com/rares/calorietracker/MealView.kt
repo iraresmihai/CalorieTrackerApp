@@ -66,8 +66,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavController, isToAdd: Boolean = false, onAdd: (wasAdded: Boolean) -> Unit = {}, isCustom: Boolean = false, portionSize: Double = -1.0) {
-    /* TODO MEAL VIEW FOR MEAL IN A DAY */
+fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavController, isToAdd: Boolean = false, onAdd: (wasAdded: Boolean) -> Unit = {}, isCustom: Boolean = true, isInDay: Boolean = false) {
     var foodList = viewModel.allFoodList
     var deleteDialog = remember {
         mutableStateOf(false)
@@ -99,10 +98,13 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                         coroutineScope.launch {
                             val aux = viewModel.makeDeepCopy(emptyIngredient.value)
                             meal.addIngredient(
-                                emptyIngredient.value,
-                                emptyIngredient.value.portionSize
+                                aux,
+                                aux.portionSize
                             )
                             viewModel.saveMeal(meal)
+                            if ( isInDay ) {
+                                onAdd(true)
+                            }
                             emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
                         }
                     }
@@ -116,10 +118,18 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                 ingredients = foodList.allIngredients,
                 onDismiss = { showAddIngredient.value = false },
                 onConfirm = { ingredient, weight ->
-                    val aux = ingredient
-                    meal.addIngredient(ingredient, weight)
-                    viewModel.saveMeal(meal)
-                    showAddIngredient.value = false
+                    coroutineScope.launch {
+                        var aux = ingredient
+                        if (isInDay) {
+                            aux = viewModel.makeDeepCopy(aux)
+                        }
+                        meal.addIngredient(aux, weight)
+                        viewModel.saveMeal(meal)
+                        if (isInDay) {
+                            onAdd(true)
+                        }
+                        showAddIngredient.value = false
+                    }
                 },
                 whatToAdd = "ingredient"
             )
@@ -129,10 +139,18 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                 ingredients = foodList.allSnacks,
                 onDismiss = { showAddSnack.value = false },
                 onConfirm = { ingredient, weight ->
-                    val aux = ingredient
-                    meal.addIngredient(ingredient, weight)
-                    viewModel.saveMeal(meal)
-                    showAddSnack.value = false
+                    coroutineScope.launch {
+                        var aux = ingredient
+                        if ( isInDay ) {
+                            aux = viewModel.makeDeepCopy(aux)
+                        }
+                        meal.addIngredient(aux, weight)
+                        viewModel.saveMeal(meal)
+                        if (isInDay) {
+                            onAdd(true)
+                        }
+                        showAddSnack.value = false
+                    }
                 },
                 whatToAdd = "snack"
             )
@@ -319,6 +337,9 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                         meal.ingredients.removeAt(it)
                         meal.recalcInfo()
                         viewModel.saveMeal(meal)
+                        if ( isInDay ) {
+                            onAdd(true)
+                        }
                     })
                 }
             }

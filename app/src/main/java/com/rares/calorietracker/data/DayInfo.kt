@@ -23,18 +23,18 @@ data class DayInfo(val date: LocalDate, var trainingName: String, val targetCalo
     var stepCount by mutableIntStateOf(0)
     var trainingTime by mutableIntStateOf(0)
 
-    val currentFood = mutableStateListOf<FinalMeal>() //adds a new meal. if the recipe gets changed afterwards, it won't get updated
+    val currentFood = mutableStateListOf<Meal>() //adds a new meal. if the recipe gets changed afterwards, it won't get updated
 
-    fun addMeal(finalMeal: FinalMeal) {
+    fun addMeal(finalMeal: Meal) {
         currentFood.add(finalMeal)
-        currentCalories += finalMeal.getTotalCal()
-        protein += finalMeal.getTotalProtein()
-        qualProtein += finalMeal.getTotalQualProtein()
-        carbs += finalMeal.getTotalCarbs()
-        fat += finalMeal.getTotalFat()
-        cost += finalMeal.getTotalPrice()
-        foodWeight += finalMeal.weightEaten
-        salt += finalMeal.getTotalSalt()
+        currentCalories += finalMeal.calories
+        protein += finalMeal.protein
+        qualProtein += finalMeal.qualProtein
+        carbs += finalMeal.carbs
+        fat += finalMeal.fat
+        cost += finalMeal.price
+        foodWeight += finalMeal.portionSize
+        salt += finalMeal.salt
     }
 
     fun recalcVal() {
@@ -48,18 +48,18 @@ data class DayInfo(val date: LocalDate, var trainingName: String, val targetCalo
         foodWeight = 0.0
 
         for ( x in currentFood ) {
-            currentCalories += x.getTotalCal()
-            protein += x.getTotalProtein()
-            qualProtein += x.getTotalQualProtein()
-            carbs += x.getTotalCarbs()
-            fat += x.getTotalFat()
-            cost += x.getTotalPrice()
-            foodWeight += x.weightEaten
-            salt += x.getTotalSalt()
+            currentCalories += x.calories
+            protein += x.protein
+            qualProtein += x.qualProtein
+            carbs += x.carbs
+            fat += x.fat
+            cost += x.price
+            foodWeight += x.portionSize
+            salt += x.salt
         }
     }
-    fun delMeal(finalMeal: FinalMeal) {
-        currentFood.remove(finalMeal)
+    fun delMeal(meal: Meal) {
+        currentFood.remove(meal)
         recalcVal()
     }
 

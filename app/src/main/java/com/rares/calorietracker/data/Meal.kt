@@ -19,6 +19,25 @@ data class Meal(val initialName : String, var typeOfMeal: TypeOfMeal = TypeOfMea
     var qualProtein by mutableDoubleStateOf(0.0)
     var salt by mutableDoubleStateOf(0.0)
 
+    fun copy() : Meal {
+        val ans = Meal(initialName, typeOfMeal, id)
+        ans.name = name
+        ans.calories = calories
+        ans.portionSize = portionSize
+        ans.price = price
+        ans.fat = fat
+        ans.carbs = carbs
+        ans.protein = protein
+        ans.qualProtein = qualProtein
+        ans.salt = salt
+
+        for ( x in ingredients ) {
+            ans.ingredients.add(x.copy())
+        }
+
+        return ans
+    }
+
     val ingredients = mutableStateListOf<FinalMeal>()
 
     val mealsWhichContain = mutableStateListOf<Meal>() //all meals which contain this meal

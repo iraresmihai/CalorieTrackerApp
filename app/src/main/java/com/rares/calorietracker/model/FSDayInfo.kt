@@ -13,6 +13,6 @@ data class FSDayInfo (
     val weight: Double = 0.0,
     val stepCount: Int = 0,
     val trainingTime: Int = 0,
-    val currentFood: List<FSFinalMeal> = listOf()
+    val currentFood: List<String> = listOf()
 ) {
 }

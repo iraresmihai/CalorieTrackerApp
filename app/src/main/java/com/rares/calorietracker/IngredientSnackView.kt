@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
@@ -50,7 +51,7 @@ import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun IngredientSnackView(meal: Meal, onDelete: () -> Unit = {}, viewModel: CalorieTrackerViewModel) {
+fun IngredientSnackView(meal: Meal, onDelete: () -> Unit = {}, viewModel: CalorieTrackerViewModel, navController: NavController) {
     var settingsDialog = remember {
         mutableStateOf(false)
     }
@@ -84,8 +85,9 @@ fun IngredientSnackView(meal: Meal, onDelete: () -> Unit = {}, viewModel: Calori
                 text = { Text("This action cannot be undone. Other meals containing this item will be affected.") },
                 confirmButton = {
                     TextButton(onClick = {
-                        onDelete()
+                        navController.popBackStack()
                         deleteDialog.value = false
+                        onDelete()
                     }) { Text("Delete") }
                 },
                 dismissButton = {
@@ -198,7 +200,9 @@ fun IngredientSnackView(meal: Meal, onDelete: () -> Unit = {}, viewModel: Calori
                 verticalArrangement = Arrangement.spacedBy(7.dp)
             ) {
                 items(meal.mealsWhichContain.size) {
-                    MealCard(meal.mealsWhichContain[it], false)
+                    MealCard(meal.mealsWhichContain[it], false, onClick = {
+                        navController.navigate("Meal/false/false/null/${meal.mealsWhichContain[it].id}")
+                    })
                 }
             }
         }

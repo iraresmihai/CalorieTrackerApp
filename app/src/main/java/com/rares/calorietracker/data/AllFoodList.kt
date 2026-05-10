@@ -13,7 +13,12 @@ class AllFoodList(var id: String = "") {
     }
 
     fun delMeal(meal: Meal) {
-        allMeals.remove(meal)
+        for ( x in allMeals ) {
+            if ( x.id == meal.id ) {
+                allMeals.remove(x)
+                return
+            }
+        }
     }
 
     fun addSnack(meal: Meal) {
@@ -21,7 +26,12 @@ class AllFoodList(var id: String = "") {
     }
 
     fun delSnack(meal: Meal) {
-        allSnacks.remove(meal)
+        for ( x in allSnacks ) {
+            if ( x.id == meal.id ) {
+                allSnacks.remove(x)
+                return
+            }
+        }
     }
 
     fun addIngredient(meal: Meal) {
@@ -29,6 +39,11 @@ class AllFoodList(var id: String = "") {
     }
 
     fun delIngredient(meal: Meal) {
-        allIngredients.remove(meal)
+        for ( x in allIngredients ) {
+            if ( x.id == meal.id ) {
+                allIngredients.remove(x)
+                return
+            }
+        }
     }
 }

@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -131,8 +132,8 @@ fun App() {
                 onConfirm = { ingredient, weight ->
                     coroutineScope.launch {
                         val aux = viewModel.getDayInfo(LocalDate.now())
-                        val ingredient2 = viewModel.makeDeepCopy(ingredient)
-                        aux.addMeal(FinalMeal(ingredient2, weight))
+                        val ingredient2 = viewModel.makeDeepCopy(ingredient, makeCustom = true, weightEaten = weight)
+                        aux.addMeal(ingredient2)
                         viewModel.saveDay(aux)
                     }
                     showAddMeal.value = false
@@ -155,7 +156,7 @@ fun App() {
                 val day = entry.arguments?.getString("day")?.let {
                     if (it == "null") null else LocalDate.parse(it)
                 }
-                val mealId = entry.arguments?.getString("mealId")?.toInt() ?: -1
+                val mealId = entry.arguments?.getString("mealId") ?: ""
                 var currDay by remember { mutableStateOf<DayInfo?>(null) }
 
                 LaunchedEffect(day) {
@@ -163,24 +164,23 @@ fun App() {
                 }
 
                 currDay?.let { dayInfo ->
-                    val accMeal = dayInfo.currentFood[mealId]
-                    MealView(accMeal.meal, viewModel, navController, portionSize = accMeal.weightEaten, onAdd = { wasAdded ->
+                    val accMeal = viewModel.allMealInfo[mealId]!!
+                    MealView(accMeal, viewModel, navController, onAdd = { wasAdded ->
                         if (!wasAdded) {
                             dayInfo.delMeal(accMeal)
                         }
                         dayInfo.recalcVal()
                         viewModel.saveDay(dayInfo)
-                    })
+                    }, isInDay = true)
                 }
             }
-
-            composable("Meal/{isToAdd}/{isCustom}/{dayToAdd}/{idInList}") { entry ->
+            composable("Meal/{isToAdd}/{isCustom}/{dayToAdd}/{idMeal}") { entry ->
                 val isToAdd = entry.arguments?.getString("isToAdd")?.toBoolean() ?: false
                 val isCustom = entry.arguments?.getString("isCustom")?.toBoolean() ?: false
                 val dayToAdd = entry.arguments?.getString("dayToAdd")?.let {
                     if (it == "null") null else LocalDate.parse(it)
                 }
-                val idInList = entry.arguments?.getString("idInList")?.toInt() ?: -1
+                val idMeal = entry.arguments?.getString("idMeal") ?: ""
 
                 if ( isToAdd ) {
                     if ( isCustom ) {
@@ -191,11 +191,7 @@ fun App() {
                                 coroutineScope.launch {
                                     viewModel.saveMeal(newMeal)
                                     viewModel.getDayInfo(accDay).addMeal(
-                                        FinalMeal(
-                                            newMeal,
-                                            newMeal.portionSize,
-                                            newMeal.name
-                                        )
+                                        newMeal
                                     )
                                 }
                             }
@@ -204,33 +200,42 @@ fun App() {
                         val newMeal = Meal("Enter name", typeOfMeal = TypeOfMeal.BASIC_MEAL)
                         MealView(newMeal, viewModel, navController, isToAdd = true, onAdd = { wasAdded ->
                             if ( wasAdded ) {
-                                viewModel.allFoodList.addMeal(newMeal)
                                 viewModel.saveMeal(newMeal)
                             }
                         })
                     }
                 } else {
-                    val meal = viewModel.allFoodList.allMeals[idInList]
+                    val meal = viewModel.allMealInfo[idMeal]!!
                     MealView(meal, viewModel, navController, onAdd = { wasAdded ->
                         if ( !wasAdded ) {
-                            viewModel.delMeal(meal)
+                            coroutineScope.launch {
+                                viewModel.delMeal(meal)
+                            }
+                        } else {
+                            coroutineScope.launch {
+                                viewModel.saveMeal(meal)
+                            }
                         }
                     })
                 }
             }
             composable("Snack/{snackId}") { entry ->
-                val snackId = entry.arguments?.getString("snackId")?.toInt() ?: -1
-                val snack = viewModel.allFoodList.allSnacks[snackId]
+                val snackId = entry.arguments?.getString("snackId") ?: ""
+                val snack = viewModel.allMealInfo[snackId]!!
                 IngredientSnackView(snack, onDelete = {
-                    viewModel.delMeal(snack)
-                }, viewModel = viewModel)
+                    coroutineScope.launch {
+                        viewModel.delMeal(snack)
+                    }
+                }, viewModel = viewModel, navController = navController)
             }
             composable("Ingredient/{ingredientId}") { entry ->
-                val ingredientId = entry.arguments?.getString("ingredientId")?.toInt() ?: -1
-                val ingredient = viewModel.allFoodList.allIngredients[ingredientId]
+                val ingredientId = entry.arguments?.getString("ingredientId") ?: -1
+                val ingredient = viewModel.allMealInfo[ingredientId]!!
                 IngredientSnackView(ingredient, onDelete = {
-                    viewModel.delMeal(ingredient)
-                }, viewModel = viewModel)
+                    coroutineScope.launch {
+                        viewModel.delMeal(ingredient)
+                    }
+                }, viewModel = viewModel, navController = navController)
             }
         }
     }

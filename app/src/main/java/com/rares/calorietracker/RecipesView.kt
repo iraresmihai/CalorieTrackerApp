@@ -97,7 +97,7 @@ fun IngredientsView(allFoodList: AllFoodList, navController: NavController, view
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
             items(allFoodList.allIngredients.size) { MealCard(allFoodList.allIngredients[it], false, onClick = {
-                navController.navigate("Ingredient/$it")
+                navController.navigate("Ingredient/${allFoodList.allIngredients[it].id}")
             })
             }
         }
@@ -107,8 +107,7 @@ fun IngredientsView(allFoodList: AllFoodList, navController: NavController, view
                 onDismiss = { wasAdded ->
                     if (wasAdded) {
                         coroutineScope.launch {
-                            val aux = viewModel.makeDeepCopy(emptyIngredient.value)
-                            allFoodList.addSnack(aux)
+                            viewModel.makeDeepCopy(emptyIngredient.value, makeCustom = false)
 
                             emptyIngredient.value = Meal("New ingredient", TypeOfMeal.INGREDIENT)
                         }
@@ -142,7 +141,7 @@ fun MealsView(allFoodList: AllFoodList, navController: NavController, viewModel:
                 MealCard(
                     allFoodList.allMeals[it], false,
                     onClick = {
-                        navController.navigate("Meal/false/false/null/$it")
+                        navController.navigate("Meal/false/false/null/${allFoodList.allMeals[it].id}")
                     }) }
         }
         FloatingActionButton(
@@ -167,7 +166,7 @@ fun SnacksView(allFoodList: AllFoodList, navController: NavController, viewModel
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
             items(allFoodList.allSnacks.size) { MealCard(allFoodList.allSnacks[it], false, onClick = {
-                navController.navigate("Snack/$it")
+                navController.navigate("Snack/${allFoodList.allSnacks[it].id}")
             })
             }
         }
@@ -177,8 +176,8 @@ fun SnacksView(allFoodList: AllFoodList, navController: NavController, viewModel
                 onDismiss = { wasAdded ->
                     if (wasAdded) {
                         coroutineScope.launch {
-                            val aux = viewModel.makeDeepCopy(emptySnack.value)
-                            allFoodList.addSnack(aux)
+                            viewModel.makeDeepCopy(emptySnack.value, makeCustom = false)
+
                             emptySnack.value = Meal("New snack", TypeOfMeal.SNACK)
                         }
                     }

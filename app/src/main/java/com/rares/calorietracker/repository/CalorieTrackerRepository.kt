@@ -59,7 +59,8 @@ class CalorieTrackerRepository {
         )
 
         if ( aux.typeOfMeal == TypeOfMeal.INGREDIENT || aux.typeOfMeal == TypeOfMeal.SNACK || aux.typeOfMeal == TypeOfMeal.CUSTOM_INGREDIENT ) {
-            return fsToIngredientSnack(FSMeal, allIngredients)
+            allIngredients[aux.id] = fsToIngredientSnack(FSMeal, allIngredients)
+            return allIngredients[aux.id]!!
         }
 
         for ( x in FSMeal.ingredients ) {
@@ -76,6 +77,17 @@ class CalorieTrackerRepository {
         return aux
     }
 
+    suspend fun fsToMeal(FSMeal: String, allIngredients: MutableMap<String, Meal>): Meal {
+        if ( allIngredients.containsKey(FSMeal) ) {
+            return allIngredients[FSMeal]!!
+        }
+
+        loadCustomRecipesAndAdd(allIngredients, listOf(FSMeal))
+
+        return allIngredients[FSMeal]!!
+    }
+
+    /*
     suspend fun fsToFinalMeal(FSFinalMeal: FSFinalMeal, allIngredients: MutableMap<String, Meal>): FinalMeal {
         if ( !allIngredients.containsKey(FSFinalMeal.meal) ) {
             loadCustomRecipesAndAdd(allIngredients, listOf(FSFinalMeal.meal))
@@ -86,6 +98,7 @@ class CalorieTrackerRepository {
             name = FSFinalMeal.name
         )
     }
+    */
 
     fun fsToTypeOfTraining(FSTypeOfTraining: FSTypeOfTraining): TypeOfTraining {
         val aux = TypeOfTraining(FSTypeOfTraining.id)
@@ -101,7 +114,7 @@ class CalorieTrackerRepository {
         val aux = DayInfo(date = LocalDate.parse(FSDayInfo.date), trainingName = FSDayInfo.trainingName, targetCalories = FSDayInfo.targetCalories, id = FSDayInfo.id)
 
         for ( x in FSDayInfo.currentFood ) {
-            aux.addMeal(fsToFinalMeal(x, allIngredients))
+            aux.addMeal(fsToMeal(x, allIngredients))
         }
 
         aux.workoutRating = FSDayInfo.workoutRating
@@ -113,9 +126,9 @@ class CalorieTrackerRepository {
     }
 
     fun DayInfoToFS(dayInfo: DayInfo): FSDayInfo {
-        val aux = mutableListOf<FSFinalMeal>()
+        val aux = mutableListOf<String>()
         for ( x in dayInfo.currentFood ) {
-            aux.add(FinalMealToFs(x))
+            aux.add(x.id)
         }
         return FSDayInfo(
             id = dayInfo.id,
@@ -310,8 +323,8 @@ class CalorieTrackerRepository {
     suspend fun loadDayMeals(FSDayInfo: FSDayInfo, allIngredients: MutableMap<String, Meal>) {
         val aux = mutableListOf<String>()
         for ( x in FSDayInfo.currentFood ) {
-            if ( !allIngredients.contains(x.meal) ) {
-                aux.add(x.meal)
+            if ( !allIngredients.contains(x) ) {
+                aux.add(x)
             }
         }
 
