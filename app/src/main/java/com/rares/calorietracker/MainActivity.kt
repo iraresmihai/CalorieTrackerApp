@@ -6,16 +6,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +25,6 @@ import androidx.navigation.compose.rememberNavController
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,11 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rares.calorietracker.data.DayInfo
-import com.rares.calorietracker.data.FinalMeal
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -76,7 +68,7 @@ fun App() {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 8.dp).padding(top = 5.dp)
                     .navigationBarsPadding()
             ) {
                 Row(
@@ -173,6 +165,9 @@ fun App() {
                         viewModel.saveDay(dayInfo)
                     }, isInDay = true)
                 }
+            }
+            composable("Settings") {
+                SettingsView(viewModel, navController)
             }
             composable("Meal/{isToAdd}/{isCustom}/{dayToAdd}/{idMeal}") { entry ->
                 val isToAdd = entry.arguments?.getString("isToAdd")?.toBoolean() ?: false

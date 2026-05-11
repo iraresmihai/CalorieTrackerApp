@@ -6,6 +6,7 @@ import androidx.room.util.copy
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.firestoreSettings
 import com.rares.calorietracker.data.AllFoodList
 import com.rares.calorietracker.data.DayInfo
 import com.rares.calorietracker.data.FinalMeal
@@ -23,7 +24,11 @@ class CalorieTrackerRepository {
     private val db = Firebase.firestore
     private val USER_ID = "test"
     private val userDoc = db.collection("users").document(USER_ID)
-
+    init {
+        db.firestoreSettings = firestoreSettings {
+            isPersistenceEnabled = true
+        }
+    }
     fun fsToIngredientSnack(FSMEal: FSMeal, allIngredients: MutableMap<String, Meal>) : Meal { //doesn t give back the isPartOf list
         if ( allIngredients.containsKey(FSMEal.id) ) {
             return allIngredients[FSMEal.id]!!

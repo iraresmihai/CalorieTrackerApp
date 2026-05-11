@@ -69,4 +69,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
+    implementation("sh.calvin.reorderable:reorderable:2.4.0")
+
 }
