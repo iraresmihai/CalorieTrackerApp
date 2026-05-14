@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.room.util.copy
 import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.firestoreSettings
@@ -28,6 +29,10 @@ class CalorieTrackerRepository {
         db.firestoreSettings = firestoreSettings {
             isPersistenceEnabled = true
         }
+    }
+
+    fun isLoggedIn() : Boolean {
+        return (Firebase.auth.currentUser != null)
     }
     fun fsToIngredientSnack(FSMEal: FSMeal, allIngredients: MutableMap<String, Meal>) : Meal { //doesn t give back the isPartOf list
         if ( allIngredients.containsKey(FSMEal.id) ) {

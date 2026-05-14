@@ -42,6 +42,10 @@ class CalorieTrackerViewModel : ViewModel() {
         }
     }
 
+    fun isLoggedIn() : Boolean {
+        return  repository.isLoggedIn()
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun getDayInfo(date: LocalDate): DayInfo {
         if ( allDays.containsKey(date) ) {

@@ -65,53 +65,55 @@ fun App() {
     //val color = if (isSystemInDarkTheme()) Color.White else Color.Black
     Scaffold(
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp).padding(top = 5.dp)
-                    .navigationBarsPadding()
-            ) {
-                Row(
+            if ( viewModel.isLoggedIn() ) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.Bottom
+                        .padding(horizontal = 8.dp).padding(top = 5.dp)
+                        .navigationBarsPadding()
                 ) {
-                    listOf("Home", "Recipes", null, "Stats", "Settings").forEach { route ->
-                        if (route == null) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        } else {
-                            Card(
-                                onClick = { navController.navigate(route) },
-                                modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color.White.copy(alpha = 0.1f)
-                                )
-                            ) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        listOf("Home", "Recipes", null, "Stats", "Settings").forEach { route ->
+                            if (route == null) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            } else {
+                                Card(
+                                    onClick = { navController.navigate(route) },
+                                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color.White.copy(alpha = 0.1f)
+                                    )
                                 ) {
-                                    Text(route, fontSize = 9.sp)
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                                    ) {
+                                        Text(route, fontSize = 9.sp)
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // floating circle button in the middle
-                FloatingActionButton(
-                    onClick = { showAddMeal.value = true },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = (-16).dp)
-                        .size(72.dp),
-                    shape = CircleShape,
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Text("Add meal", fontSize = 12.sp)
+                    // floating circle button in the middle
+                    FloatingActionButton(
+                        onClick = { showAddMeal.value = true },
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = (-16).dp)
+                            .size(72.dp),
+                        shape = CircleShape,
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ) {
+                        Text("Add meal", fontSize = 12.sp)
+                    }
                 }
             }
         }
@@ -135,7 +137,7 @@ fun App() {
         }
         NavHost(
             navController = navController,
-            startDestination = "Home",
+            startDestination = if ( viewModel.isLoggedIn() ) "Login" else "Home",
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("Home") {
