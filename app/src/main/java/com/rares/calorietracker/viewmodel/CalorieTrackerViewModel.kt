@@ -17,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.rares.calorietracker.data.FinalMeal
 import com.rares.calorietracker.data.Meal
+import com.rares.calorietracker.data.StatInfo
+import com.rares.calorietracker.data.StatInfoWithDate
 import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.model.FSDayInfo
 import com.rares.calorietracker.repository.CalorieTrackerRepository
@@ -29,6 +31,7 @@ class CalorieTrackerViewModel : ViewModel() {
     val allMealInfo = mutableMapOf<String, Meal>()
     val allDays = mutableStateMapOf<LocalDate, DayInfo>()
     var typeOfTraining by mutableStateOf(TypeOfTraining())
+    val allStats = mutableStateMapOf<LocalDate, StatInfo>()
 
     private val repository = CalorieTrackerRepository()
 
@@ -36,7 +39,7 @@ class CalorieTrackerViewModel : ViewModel() {
         viewModelScope.launch {
             // load food list first since days depend on it
             repository.loadAllFoodList(allFoodList, allMealInfo)
-
+            repository.loadStats(allStats)
             // load training info
             typeOfTraining = repository.loadTypeOfTraining()
         }
@@ -44,6 +47,31 @@ class CalorieTrackerViewModel : ViewModel() {
 
     fun isLoggedIn() : Boolean {
         return  repository.isLoggedIn()
+    }
+
+    fun getLastDays(ans : MutableList<StatInfoWithDate>, nrDays: Int) {
+        var aux = LocalDate.now().minusDays((nrDays - 1).toLong())
+        if ( nrDays == -1 && allStats.keys.isNotEmpty()) {
+            aux = allStats.keys.sorted()[0]
+        }
+        var sum = 0.0
+        var lastNenule = 0.0
+
+        ans.clear()
+        while ( !aux.isAfter(LocalDate.now()) ) {
+            if ( ans.size >= 7 ) {
+                sum -= ans[ans.size - 7].usedWeight
+            }
+            if ( allStats.containsKey(aux) ) {
+                sum += allStats[aux]!!.weight
+                lastNenule = allStats[aux]!!.weight
+                ans.add(StatInfoWithDate(allStats[aux]!!.calories, allStats[aux]!!.weight, lastNenule, aux, sum / 7.0))
+            } else {
+                sum += lastNenule
+                ans.add(StatInfoWithDate(0.0, 0.0, lastNenule, aux, sum / 7.0))
+            }
+            aux = aux.plusDays(1)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

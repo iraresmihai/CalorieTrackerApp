@@ -2,13 +2,14 @@ package com.rares.calorietracker.repository
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.room.util.copy
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.firestoreSettings
 import com.rares.calorietracker.data.AllFoodList
+import com.rares.calorietracker.data.StatInfo
 import com.rares.calorietracker.data.DayInfo
 import com.rares.calorietracker.data.FinalMeal
 import com.rares.calorietracker.data.Meal
@@ -17,14 +18,14 @@ import com.rares.calorietracker.data.TypeOfTraining
 import com.rares.calorietracker.model.FSDayInfo
 import com.rares.calorietracker.model.FSFinalMeal
 import com.rares.calorietracker.model.FSMeal
+import com.rares.calorietracker.model.FSStats
 import com.rares.calorietracker.model.FSTypeOfTraining
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
 class CalorieTrackerRepository {
     private val db = Firebase.firestore
-    private val USER_ID = "test"
-    private val userDoc = db.collection("users").document(USER_ID)
+    private val userDoc get() = db.collection("users").document(Firebase.auth.currentUser!!.uid)
     init {
         db.firestoreSettings = firestoreSettings {
             isPersistenceEnabled = true
@@ -193,6 +194,15 @@ class CalorieTrackerRepository {
             weightEaten = FinalMeal.weightEaten,
             name = FinalMeal.name
         )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun loadStats(allStats: MutableMap<LocalDate, StatInfo>) {
+        val result = userDoc.collection("stats").document("summary").get().await()
+        val fsStats = result.toObject(FSStats::class.java) ?: return
+        for ((dateStr, statInfo) in fsStats.history) {
+            allStats[LocalDate.parse(dateStr)] = statInfo
+        }
     }
 
     suspend fun loadIngredientsAndSnacks(allIngredients: MutableMap<String, Meal>) : MutableList<Meal> {
@@ -370,6 +380,8 @@ class CalorieTrackerRepository {
 
     suspend fun saveDay(dayInfo: DayInfo): String {
         val fsDay = DayInfoToFS(dayInfo)
+        val newStatInfo = StatInfo(dayInfo.currentCalories, dayInfo.weight)
+        userDoc.collection("stats").document("summary").set(hashMapOf("history" to hashMapOf(fsDay.date to newStatInfo)), SetOptions.merge())
         return if (dayInfo.id.isEmpty()) {
             userDoc.collection("days").add(fsDay).await().id
         } else {

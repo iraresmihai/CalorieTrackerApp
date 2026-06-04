@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,10 +35,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.notes.app.model.service.impl.AccountServiceRepository
 import com.rares.calorietracker.data.DayInfo
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.viewmodel.CalorieTrackerViewModel
+import com.rares.calorietracker.viewmodel.SignInViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -61,6 +64,29 @@ fun App() {
     val viewModel: CalorieTrackerViewModel = viewModel()
     val showAddMeal = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    val accountService = remember { AccountServiceRepository() }
+    val signInViewModel = remember { SignInViewModel(accountService) }
+    val currentUser by accountService.currentUser.collectAsState(initial = null)
+
+    // shared navigation helper: go to [route] and clear [popUp] off the back stack
+    val openAndPopUp: (String, String) -> Unit = { route, popUp ->
+        navController.navigate(route) {
+            popUpTo(popUp) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
+    // global auth guard: whenever the user is signed out (startup, logout,
+    // token expiry, account deletion), force the whole stack back to splash
+    LaunchedEffect(currentUser) {
+        if (currentUser == null) {
+            navController.navigate("splash") {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
 
     //val color = if (isSystemInDarkTheme()) Color.White else Color.Black
     Scaffold(
@@ -137,9 +163,18 @@ fun App() {
         }
         NavHost(
             navController = navController,
-            startDestination = if ( viewModel.isLoggedIn() ) "Login" else "Home",
+            startDestination = "splash",
             modifier = Modifier.padding(paddingValues)
         ) {
+            composable("splash") {
+                SplashScreen(openAndPopUp = openAndPopUp, accountService = accountService)
+            }
+            composable("signIn") {
+                SignInScreen(openAndPopUp = openAndPopUp, viewModel = signInViewModel)
+            }
+            composable("signUp") {
+                SignUpScreen(openAndPopUp = openAndPopUp, viewModel = signInViewModel)
+            }
             composable("Home") {
                 HomeView(viewModel, navController)
             }
@@ -168,8 +203,11 @@ fun App() {
                     }, isInDay = true)
                 }
             }
+            composable("Stats") {
+                StatsView(viewModel)
+            }
             composable("Settings") {
-                SettingsView(viewModel, navController)
+                SettingsView(viewModel, navController, accountService)
             }
             composable("Meal/{isToAdd}/{isCustom}/{dayToAdd}/{idMeal}") { entry ->
                 val isToAdd = entry.arguments?.getString("isToAdd")?.toBoolean() ?: false

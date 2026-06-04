@@ -37,7 +37,7 @@ fun SplashScreen(
     LaunchedEffect(true) {
         delay(SPLASH_TIMEOUT)
         if ( accountService.hasUser() ) {
-            openAndPopUp("main", "splash")
+            openAndPopUp("Home", "splash")
         } else {
             openAndPopUp("signIn", "splash")
         }

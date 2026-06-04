@@ -1,5 +1,6 @@
 package com.notes.app.model.service.impl
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.Firebase
@@ -33,6 +34,7 @@ class AccountServiceRepository constructor() {
     }
 
     suspend fun signUp(email: String, password: String) {
+        Log.d("DEBUGSIGN", "before sign up in call")
         Firebase.auth.createUserWithEmailAndPassword(email, password).await()
     }
 
