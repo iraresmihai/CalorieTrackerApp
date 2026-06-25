@@ -1,14 +1,12 @@
 package com.rares.calorietracker
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -16,109 +14,105 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rares.calorietracker.R
-import com.rares.calorietracker.ui.theme.MyApplicationTheme
-import com.rares.calorietracker.ui.theme.Purple40
 import com.rares.calorietracker.viewmodel.SignInViewModel
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun SignInScreen(
     openAndPopUp: (String, String) -> Unit,
+    goToSignUp: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SignInViewModel
 ) {
     val email = viewModel.email.collectAsState()
     val password = viewModel.password.collectAsState()
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        OutlinedTextField(
-            singleLine = true,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(16.dp, 4.dp)
-                .border(
-                    BorderStroke(width = 2.dp, color = Purple40),
-                    shape = RoundedCornerShape(50)
-                ),
-            value = email.value,
-            onValueChange = { viewModel.updateEmail(it) },
-            placeholder = { Text("Email") },//Text(stringResource(R.string.email)) },
-            leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = "Email") }
+        Text(
+            text = "CalorieTracker",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Text(
+            text = "Sign in to continue",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 32.dp)
         )
 
         OutlinedTextField(
             singleLine = true,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(16.dp, 4.dp)
-                .border(
-                    BorderStroke(width = 2.dp, color = Purple40),
-                    shape = RoundedCornerShape(50)
-                ),
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            value = email.value,
+            onValueChange = { viewModel.updateEmail(it) },
+            label = { Text("Email") },
+            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) }
+        )
+
+        OutlinedTextField(
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            shape = RoundedCornerShape(12.dp),
             value = password.value,
             onValueChange = { viewModel.updatePassword(it) },
-            placeholder = { Text("Password") },//Text(stringResource(R.string.password)) },
-            leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = "Email") },
+            label = { Text("Password") },
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
             visualTransformation = PasswordVisualTransformation()
         )
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp))
-
         Button(
             onClick = { viewModel.onSignInClick(openAndPopUp) },
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(16.dp, 0.dp)
+            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            Text(
-                text = "Sign In",
-                fontSize = 16.sp,
-                modifier = modifier.padding(0.dp, 6.dp)
-            )
+            Text(text = "Sign In", fontSize = 16.sp, modifier = Modifier.padding(vertical = 6.dp))
         }
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .padding(4.dp))
-
-        TextButton(onClick = { viewModel.onSignUpClickGoTo(openAndPopUp) }) {
+        TextButton(onClick = { goToSignUp() }) {
             Text(text = "Don't have an account? Sign Up!", fontSize = 16.sp)
         }
-    }
-}
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun AuthPreview() {
-    //NotesTheme {
-       // SignInScreen({ _, _ -> })
-    //}
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HorizontalDivider(modifier = Modifier.weight(1f))
+            Text("  or  ", fontSize = 14.sp, color = Color.Gray)
+            HorizontalDivider(modifier = Modifier.weight(1f))
+        }
+
+        Button(
+            onClick = { viewModel.onGoogleSignInClick(context, openAndPopUp) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(text = "Sign in with Google", fontSize = 16.sp, modifier = Modifier.padding(vertical = 6.dp))
+        }
+    }
 }

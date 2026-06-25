@@ -33,7 +33,7 @@ fun AddIngredientDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(dismissOnClickOutside = false),
+        properties = DialogProperties(dismissOnClickOutside = true),
         title = { Text("Add " + whatToAdd) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

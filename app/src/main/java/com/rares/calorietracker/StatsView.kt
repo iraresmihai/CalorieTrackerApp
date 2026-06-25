@@ -55,6 +55,9 @@ import com.patrykandpatrick.vico.core.common.data.ExtraStore
 enum class StatPlot(val displayName: String) {
     CALORIES("Calories"),
     WEIGHT("Weight"),
+    TRAINING_TIME("Training time"),
+    COST("Cost"),
+    SALT("Salt"),
 }
 
 enum class TimeRange(val displayName: String) {
@@ -163,41 +166,55 @@ fun StatsView(viewModel: CalorieTrackerViewModel) {
                 }
             }
 
-            val filtered = remember(selectedRange) {
+            val filtered = remember(selectedRange, viewModel.allStats.size) {
+                val nrDays = when (selectedRange) {
+                    TimeRange.ONE_WEEK -> 7
+                    TimeRange.ONE_MONTH -> 30
+                    TimeRange.THREE_MONTHS -> 90
+                    TimeRange.SIX_MONTHS -> 180
+                    TimeRange.ONE_YEAR -> 365
+                    TimeRange.ALL -> -1
+                }
+                mutableListOf<StatInfoWithDate>().also { viewModel.getLastDays(it, nrDays) }
+            }
+
+            /*
+            val filteredPlaceholder = remember(selectedRange) {
                 val today = LocalDate.now()
                 listOf(
-                    StatInfoWithDate(2100.0, 76.5, 76.5, today.minusDays(29), 76.5),
-                    StatInfoWithDate(2300.0, 76.2, 76.2, today.minusDays(28), 76.4),
-                    StatInfoWithDate(1900.0, 0.0,  76.2, today.minusDays(27), 76.3),
-                    StatInfoWithDate(2400.0, 75.9, 75.9, today.minusDays(26), 76.2),
-                    StatInfoWithDate(2200.0, 75.8, 75.8, today.minusDays(25), 76.1),
-                    StatInfoWithDate(2500.0, 0.0,  75.8, today.minusDays(24), 76.0),
-                    StatInfoWithDate(2150.0, 75.6, 75.6, today.minusDays(23), 76.0),
-                    StatInfoWithDate(2350.0, 75.4, 75.4, today.minusDays(22), 75.9),
-                    StatInfoWithDate(2000.0, 75.2, 75.2, today.minusDays(21), 75.8),
-                    StatInfoWithDate(2450.0, 0.0,  75.2, today.minusDays(20), 75.7),
-                    StatInfoWithDate(2250.0, 75.0, 75.0, today.minusDays(19), 75.6),
-                    StatInfoWithDate(2100.0, 74.8, 74.8, today.minusDays(18), 75.4),
-                    StatInfoWithDate(2300.0, 74.9, 74.9, today.minusDays(17), 75.3),
-                    StatInfoWithDate(2400.0, 74.7, 74.7, today.minusDays(16), 75.1),
-                    StatInfoWithDate(1950.0, 0.0,  74.7, today.minusDays(15), 74.9),
-                    StatInfoWithDate(2200.0, 74.5, 74.5, today.minusDays(14), 74.8),
-                    StatInfoWithDate(2350.0, 74.3, 74.3, today.minusDays(13), 74.7),
-                    StatInfoWithDate(2100.0, 74.4, 74.4, today.minusDays(12), 74.6),
-                    StatInfoWithDate(2500.0, 74.1, 74.1, today.minusDays(11), 74.4),
-                    StatInfoWithDate(2250.0, 0.0,  74.1, today.minusDays(10), 74.3),
-                    StatInfoWithDate(2150.0, 73.9, 73.9, today.minusDays(9),  74.2),
-                    StatInfoWithDate(2300.0, 73.8, 73.8, today.minusDays(8),  74.1),
-                    StatInfoWithDate(2050.0, 73.7, 73.7, today.minusDays(7),  74.0),
-                    StatInfoWithDate(2400.0, 0.0,  73.7, today.minusDays(6),  73.9),
-                    StatInfoWithDate(2200.0, 73.5, 73.5, today.minusDays(5),  73.8),
-                    StatInfoWithDate(2350.0, 73.4, 73.4, today.minusDays(4),  73.7),
-                    StatInfoWithDate(2100.0, 73.3, 73.3, today.minusDays(3),  73.6),
-                    StatInfoWithDate(2500.0, 73.2, 73.2, today.minusDays(2),  73.5),
-                    StatInfoWithDate(2250.0, 73.0, 73.0, today.minusDays(1),  73.4),
-                    StatInfoWithDate(2300.0, 72.9, 72.9, today,               73.3),
+                    StatInfoWithDate(2100.0, 76.5, 76.5, today.minusDays(29), 76.5, 60, 8.50, 3.2),
+                    StatInfoWithDate(2300.0, 76.2, 76.2, today.minusDays(28), 76.4, 0,  7.80, 2.8),
+                    StatInfoWithDate(1900.0, 0.0,  76.2, today.minusDays(27), 76.3, 45, 6.90, 2.5),
+                    StatInfoWithDate(2400.0, 75.9, 75.9, today.minusDays(26), 76.2, 70, 9.20, 3.5),
+                    StatInfoWithDate(2200.0, 75.8, 75.8, today.minusDays(25), 76.1, 55, 8.10, 3.0),
+                    StatInfoWithDate(2500.0, 0.0,  75.8, today.minusDays(24), 76.0, 0,  7.50, 2.7),
+                    StatInfoWithDate(2150.0, 75.6, 75.6, today.minusDays(23), 76.0, 50, 8.30, 3.1),
+                    StatInfoWithDate(2350.0, 75.4, 75.4, today.minusDays(22), 75.9, 65, 9.00, 3.4),
+                    StatInfoWithDate(2000.0, 75.2, 75.2, today.minusDays(21), 75.8, 40, 7.20, 2.6),
+                    StatInfoWithDate(2450.0, 0.0,  75.2, today.minusDays(20), 75.7, 0,  8.60, 3.3),
+                    StatInfoWithDate(2250.0, 75.0, 75.0, today.minusDays(19), 75.6, 60, 8.90, 3.2),
+                    StatInfoWithDate(2100.0, 74.8, 74.8, today.minusDays(18), 75.4, 75, 9.50, 3.6),
+                    StatInfoWithDate(2300.0, 74.9, 74.9, today.minusDays(17), 75.3, 50, 8.20, 3.0),
+                    StatInfoWithDate(2400.0, 74.7, 74.7, today.minusDays(16), 75.1, 60, 8.70, 3.3),
+                    StatInfoWithDate(1950.0, 0.0,  74.7, today.minusDays(15), 74.9, 0,  7.10, 2.5),
+                    StatInfoWithDate(2200.0, 74.5, 74.5, today.minusDays(14), 74.8, 55, 8.40, 3.1),
+                    StatInfoWithDate(2350.0, 74.3, 74.3, today.minusDays(13), 74.7, 65, 9.10, 3.4),
+                    StatInfoWithDate(2100.0, 74.4, 74.4, today.minusDays(12), 74.6, 45, 7.90, 2.9),
+                    StatInfoWithDate(2500.0, 74.1, 74.1, today.minusDays(11), 74.4, 70, 9.30, 3.5),
+                    StatInfoWithDate(2250.0, 0.0,  74.1, today.minusDays(10), 74.3, 0,  8.00, 3.0),
+                    StatInfoWithDate(2150.0, 73.9, 73.9, today.minusDays(9),  74.2, 50, 8.50, 3.2),
+                    StatInfoWithDate(2300.0, 73.8, 73.8, today.minusDays(8),  74.1, 60, 8.80, 3.3),
+                    StatInfoWithDate(2050.0, 73.7, 73.7, today.minusDays(7),  74.0, 40, 7.60, 2.7),
+                    StatInfoWithDate(2400.0, 0.0,  73.7, today.minusDays(6),  73.9, 0,  8.20, 3.0),
+                    StatInfoWithDate(2200.0, 73.5, 73.5, today.minusDays(5),  73.8, 55, 8.90, 3.4),
+                    StatInfoWithDate(2350.0, 73.4, 73.4, today.minusDays(4),  73.7, 65, 9.20, 3.5),
+                    StatInfoWithDate(2100.0, 73.3, 73.3, today.minusDays(3),  73.6, 45, 7.80, 2.8),
+                    StatInfoWithDate(2500.0, 73.2, 73.2, today.minusDays(2),  73.5, 70, 9.40, 3.6),
+                    StatInfoWithDate(2250.0, 73.0, 73.0, today.minusDays(1),  73.4, 60, 8.60, 3.2),
+                    StatInfoWithDate(2300.0, 72.9, 72.9, today,               73.3, 55, 8.30, 3.1),
                 )
             }
+            */
 
             StatsPlaceholder(selectedPlot, filtered)
         }
@@ -221,6 +238,9 @@ fun StatsPlaceholder(plot: StatPlot, data: List<StatInfoWithDate>) {
     when (plot) {
         StatPlot.WEIGHT -> WeightChart(data)
         StatPlot.CALORIES -> CaloriesChart(data)
+        StatPlot.TRAINING_TIME -> TrainingTimeChart(data)
+        StatPlot.COST -> CostChart(data)
+        StatPlot.SALT -> SaltChart(data)
     }
 }
 
@@ -252,7 +272,7 @@ fun WeightChart(data: List<StatInfoWithDate>) {
         val max = weights.max()
         val padding = (max - min).coerceAtLeast(1.0) * 0.3
         object : CartesianLayerRangeProvider {
-            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = min - padding
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = (min - padding).coerceAtLeast(0.0)
             override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore) = max + padding
         }
     }
@@ -292,7 +312,7 @@ fun CaloriesChart(data: List<StatInfoWithDate>) {
         val max = calories.max()
         val padding = (max - min).coerceAtLeast(100.0) * 0.3
         object : CartesianLayerRangeProvider {
-            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = min - padding
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = (min - padding).coerceAtLeast(0.0)
             override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore) = max + padding
         }
     }
@@ -310,6 +330,135 @@ fun CaloriesChart(data: List<StatInfoWithDate>) {
             ),
             startAxis = VerticalAxis.rememberStart(
                 valueFormatter = { _, value, _ -> "%.0f".format(value) }
+            ),
+            bottomAxis = HorizontalAxis.rememberBottom(),
+        ),
+        modelProducer = modelProducer,
+        scrollState = rememberVicoScrollState(scrollEnabled = true),
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@Composable
+fun TrainingTimeChart(data: List<StatInfoWithDate>) {
+    val modelProducer = remember { CartesianChartModelProducer() }
+
+    LaunchedEffect(data) {
+        modelProducer.runTransaction {
+            lineSeries { series(data.map { it.trainingTime.toDouble() }) }
+        }
+    }
+
+    val rangeProvider = remember(data) {
+        val values = data.map { it.trainingTime.toDouble() }
+        val min = values.min()
+        val max = values.max()
+        val padding = (max - min).coerceAtLeast(10.0) * 0.3
+        object : CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = (min - padding).coerceAtLeast(0.0)
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore) = max + padding
+        }
+    }
+
+    val line = LineCartesianLayer.rememberLine(
+        fill = LineCartesianLayer.LineFill.single(fill(Color(0xFFFFA726))),
+        areaFill = null
+    )
+
+    CartesianChartHost(
+        chart = rememberCartesianChart(
+            rememberLineCartesianLayer(
+                LineCartesianLayer.LineProvider.series(line),
+                rangeProvider = rangeProvider
+            ),
+            startAxis = VerticalAxis.rememberStart(
+                valueFormatter = { _, value, _ -> "%.0f min".format(value) }
+            ),
+            bottomAxis = HorizontalAxis.rememberBottom(),
+        ),
+        modelProducer = modelProducer,
+        scrollState = rememberVicoScrollState(scrollEnabled = true),
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@Composable
+fun CostChart(data: List<StatInfoWithDate>) {
+    val modelProducer = remember { CartesianChartModelProducer() }
+
+    LaunchedEffect(data) {
+        modelProducer.runTransaction {
+            lineSeries { series(data.map { it.cost }) }
+        }
+    }
+
+    val rangeProvider = remember(data) {
+        val values = data.map { it.cost }
+        val min = values.min()
+        val max = values.max()
+        val padding = (max - min).coerceAtLeast(1.0) * 0.3
+        object : CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = (min - padding).coerceAtLeast(0.0)
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore) = max + padding
+        }
+    }
+
+    val line = LineCartesianLayer.rememberLine(
+        fill = LineCartesianLayer.LineFill.single(fill(Color(0xFFAB47BC))),
+        areaFill = null
+    )
+
+    CartesianChartHost(
+        chart = rememberCartesianChart(
+            rememberLineCartesianLayer(
+                LineCartesianLayer.LineProvider.series(line),
+                rangeProvider = rangeProvider
+            ),
+            startAxis = VerticalAxis.rememberStart(
+                valueFormatter = { _, value, _ -> "%.2f".format(value) }
+            ),
+            bottomAxis = HorizontalAxis.rememberBottom(),
+        ),
+        modelProducer = modelProducer,
+        scrollState = rememberVicoScrollState(scrollEnabled = true),
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@Composable
+fun SaltChart(data: List<StatInfoWithDate>) {
+    val modelProducer = remember { CartesianChartModelProducer() }
+
+    LaunchedEffect(data) {
+        modelProducer.runTransaction {
+            lineSeries { series(data.map { it.salt }) }
+        }
+    }
+
+    val rangeProvider = remember(data) {
+        val values = data.map { it.salt }
+        val min = values.min()
+        val max = values.max()
+        val padding = (max - min).coerceAtLeast(0.5) * 0.3
+        object : CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = (min - padding).coerceAtLeast(0.0)
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore) = max + padding
+        }
+    }
+
+    val line = LineCartesianLayer.rememberLine(
+        fill = LineCartesianLayer.LineFill.single(fill(Color(0xFF26C6DA))),
+        areaFill = null
+    )
+
+    CartesianChartHost(
+        chart = rememberCartesianChart(
+            rememberLineCartesianLayer(
+                LineCartesianLayer.LineProvider.series(line),
+                rangeProvider = rangeProvider
+            ),
+            startAxis = VerticalAxis.rememberStart(
+                valueFormatter = { _, value, _ -> "%.1f g".format(value) }
             ),
             bottomAxis = HorizontalAxis.rememberBottom(),
         ),

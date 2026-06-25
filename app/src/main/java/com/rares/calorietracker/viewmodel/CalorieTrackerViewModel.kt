@@ -32,16 +32,28 @@ class CalorieTrackerViewModel : ViewModel() {
     val allDays = mutableStateMapOf<LocalDate, DayInfo>()
     var typeOfTraining by mutableStateOf(TypeOfTraining())
     val allStats = mutableStateMapOf<LocalDate, StatInfo>()
+    var hasUnsavedSettings by mutableStateOf(false)
+    var commitPendingSettings: (() -> Unit)? = null
 
     private val repository = CalorieTrackerRepository()
 
     init {
+        if (repository.isLoggedIn()) {
+            loadData()
+        }
+    }
+
+    fun loadData() {
+        Log.d("DEBUGLOAD", "loadData")
         viewModelScope.launch {
-            // load food list first since days depend on it
-            repository.loadAllFoodList(allFoodList, allMealInfo)
-            repository.loadStats(allStats)
-            // load training info
-            typeOfTraining = repository.loadTypeOfTraining()
+            try {
+                repository.loadAllFoodList(allFoodList, allMealInfo)
+                repository.loadStats(allStats)
+                typeOfTraining = repository.loadTypeOfTraining()
+                Log.d("TYPETR", typeOfTraining.id)
+            } catch (e: Exception) {
+                Log.e("CalorieTracker", "Failed to load data: ${e.message}")
+            }
         }
     }
 
@@ -65,10 +77,10 @@ class CalorieTrackerViewModel : ViewModel() {
             if ( allStats.containsKey(aux) ) {
                 sum += allStats[aux]!!.weight
                 lastNenule = allStats[aux]!!.weight
-                ans.add(StatInfoWithDate(allStats[aux]!!.calories, allStats[aux]!!.weight, lastNenule, aux, sum / 7.0))
+                ans.add(StatInfoWithDate(allStats[aux]!!.calories, allStats[aux]!!.weight, lastNenule, aux, sum / 7.0, allStats[aux]!!.trainingTime, allStats[aux]!!.cost, allStats[aux]!!.salt))
             } else {
                 sum += lastNenule
-                ans.add(StatInfoWithDate(0.0, 0.0, lastNenule, aux, sum / 7.0))
+                ans.add(StatInfoWithDate(0.0, 0.0, lastNenule, aux, sum / 7.0, 0, 0.0, 0.0))
             }
             aux = aux.plusDays(1)
         }
@@ -85,6 +97,10 @@ class CalorieTrackerViewModel : ViewModel() {
         val fsDay = fsDays[date]
         if ( fsDay != null && fsDay.date.isNotEmpty() ) {
             allDays[date] = repository.fsToDayInfo(fsDay, allMealInfo)
+            if ( allDays[date]!!.targetCalories == 0.0 && typeOfTraining.targetCalories != 0 ) {
+                allDays[date]!!.targetCalories = typeOfTraining.targetCalories.toDouble()
+            }
+            saveDay(allDays[date]!!)
             return allDays[date]!!
         }
         var lastTraining: String? = null
@@ -115,7 +131,7 @@ class CalorieTrackerViewModel : ViewModel() {
 
         allDays[date] = DayInfo(date, ans, typeOfTraining.targetCalories.toDouble())
 
-        allDays[date]!!.id = repository.saveDay(allDays[date]!!)
+        saveDay(allDays[date]!!)
 
         return allDays[date]!!
     }
@@ -150,13 +166,24 @@ class CalorieTrackerViewModel : ViewModel() {
         }
     }
 
-    fun saveDay(dayInfo: DayInfo) {
+    fun saveDayAsync(dayInfo: DayInfo) {
+        Log.d("SAVEDAY", dayInfo.currentCalories.toString())
         viewModelScope.launch {
-            dayInfo.id = repository.saveDay(dayInfo)
+            saveDay(dayInfo)
+        }
+    }
+
+    suspend fun saveDay(dayInfo: DayInfo) {
+        Log.d("SAVEDAY2", dayInfo.currentCalories.toString())
+
+        //viewModelScope.launch {
+            val newStat = StatInfo(dayInfo.currentCalories, dayInfo.weight, dayInfo.trainingTime, dayInfo.cost, dayInfo.salt)
+            allStats[dayInfo.date] = newStat
+            dayInfo.id = repository.saveDay(dayInfo, newStat)
             if ( !allDays.containsKey(dayInfo.date) ) {
                 allDays[dayInfo.date] = dayInfo
             }
-        }
+        //}
     }
 
     suspend fun delMeal(meal: Meal) {
@@ -224,6 +251,7 @@ class CalorieTrackerViewModel : ViewModel() {
     }
 
     fun saveTypeOfTraining(typeOfTraining: TypeOfTraining) {
+        Log.d("TYPETR", typeOfTraining.id)
         viewModelScope.launch {
             typeOfTraining.id = repository.saveTypeOfTraining(typeOfTraining)
             this@CalorieTrackerViewModel.typeOfTraining = typeOfTraining

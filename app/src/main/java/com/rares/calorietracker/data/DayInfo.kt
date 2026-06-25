@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 
-data class DayInfo(val date: LocalDate, var trainingName: String, val targetCalories: Double, var id: String = "") {
+data class DayInfo(val date: LocalDate, var trainingName: String, var targetCalories: Double, var id: String = "") {
     var currentCalories by mutableDoubleStateOf(0.0)
     var protein by mutableDoubleStateOf(0.0)
     var qualProtein by mutableDoubleStateOf(0.0)

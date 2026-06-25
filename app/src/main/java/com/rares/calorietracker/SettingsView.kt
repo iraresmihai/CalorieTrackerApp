@@ -37,7 +37,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,7 +55,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SettingsView(viewModel: CalorieTrackerViewModel, navController: NavController, accountService: AccountServiceRepository) {
+fun SettingsView(viewModel: CalorieTrackerViewModel, navController: NavController, accountService: AccountServiceRepository, onNavigateBack: () -> Unit = { navController.popBackStack() }) {
     val coroutineScope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var targetCaloriesText by remember { mutableStateOf(viewModel.typeOfTraining.targetCalories.toString()) }
@@ -62,6 +65,48 @@ fun SettingsView(viewModel: CalorieTrackerViewModel, navController: NavControlle
     val lazyListState = rememberLazyListState()
     val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
         trainingList.add(to.index, trainingList.removeAt(from.index))
+        viewModel.hasUnsavedSettings = true
+    }
+
+    var showUnsavedDialog by remember { mutableStateOf(false) }
+
+    val doSave = {
+        viewModel.typeOfTraining.allTraining.clear()
+        viewModel.typeOfTraining.allTraining.addAll(trainingList)
+        viewModel.typeOfTraining.targetCalories = targetCaloriesText.toIntOrNull() ?: viewModel.typeOfTraining.targetCalories
+        viewModel.saveTypeOfTraining(viewModel.typeOfTraining)
+        viewModel.hasUnsavedSettings = false
+    }
+
+    DisposableEffect(Unit) {
+        viewModel.commitPendingSettings = doSave
+        onDispose { viewModel.commitPendingSettings = null }
+    }
+
+    BackHandler(enabled = viewModel.hasUnsavedSettings) {
+        showUnsavedDialog = true
+    }
+
+    if (showUnsavedDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnsavedDialog = false },
+            title = { Text("Unsaved changes") },
+            text = { Text("Do you wish to keep your changes?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    doSave()
+                    showUnsavedDialog = false
+                    onNavigateBack()
+                }) { Text("Keep") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    viewModel.hasUnsavedSettings = false
+                    showUnsavedDialog = false
+                    onNavigateBack()
+                }) { Text("Discard") }
+            }
+        )
     }
 
     if (showAddTraining) {
@@ -80,6 +125,7 @@ fun SettingsView(viewModel: CalorieTrackerViewModel, navController: NavControlle
                     if (newTrainingName.isNotEmpty()) {
                         trainingList.add(newTrainingName)
                         newTrainingName = ""
+                        viewModel.hasUnsavedSettings = true
                     }
                     showAddTraining = false
                 }) { Text("Add") }
@@ -92,19 +138,21 @@ fun SettingsView(viewModel: CalorieTrackerViewModel, navController: NavControlle
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         TopAppBar(
+            windowInsets = WindowInsets(0),
             title = { Text("Settings") },
             navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
+                IconButton(onClick = {
+                    if (viewModel.hasUnsavedSettings) showUnsavedDialog = true
+                    else onNavigateBack()
+                }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
             },
             actions = {
                 IconButton(onClick = {
                     keyboardController?.hide()
-                    viewModel.typeOfTraining.allTraining.clear()
-                    viewModel.typeOfTraining.allTraining.addAll(trainingList)
-                    viewModel.typeOfTraining.targetCalories = targetCaloriesText.toIntOrNull() ?: viewModel.typeOfTraining.targetCalories
-                    viewModel.saveTypeOfTraining(viewModel.typeOfTraining)
+                    doSave()
+                    onNavigateBack()
                 }) {
                     Icon(Icons.Default.Check, contentDescription = "Save")
                 }
@@ -128,7 +176,7 @@ fun SettingsView(viewModel: CalorieTrackerViewModel, navController: NavControlle
                 )
                 OutlinedTextField(
                     value = targetCaloriesText,
-                    onValueChange = { targetCaloriesText = it },
+                    onValueChange = { targetCaloriesText = it; viewModel.hasUnsavedSettings = true },
                     modifier = Modifier.weight(2f),
                     textStyle = MaterialTheme.typography.titleMedium
                 )
@@ -176,7 +224,7 @@ fun SettingsView(viewModel: CalorieTrackerViewModel, navController: NavControlle
                                         style = MaterialTheme.typography.titleMedium
                                     )
                                     Row {
-                                        IconButton(onClick = { trainingList.removeAt(index) }) {
+                                        IconButton(onClick = { trainingList.removeAt(index); viewModel.hasUnsavedSettings = true }) {
                                             Icon(
                                                 Icons.Default.Delete,
                                                 contentDescription = "Delete",
@@ -198,12 +246,7 @@ fun SettingsView(viewModel: CalorieTrackerViewModel, navController: NavControlle
         }
 
         Button(
-            onClick = {
-                viewModel.typeOfTraining.allTraining.clear()
-                viewModel.typeOfTraining.allTraining.addAll(trainingList)
-                viewModel.typeOfTraining.targetCalories = targetCaloriesText.toIntOrNull() ?: viewModel.typeOfTraining.targetCalories
-                viewModel.saveTypeOfTraining(viewModel.typeOfTraining)
-            },
+            onClick = { keyboardController?.hide(); doSave(); onNavigateBack() },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Save")

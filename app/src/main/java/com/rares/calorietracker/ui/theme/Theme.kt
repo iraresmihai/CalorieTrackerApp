@@ -1,66 +1,36 @@
 package com.rares.calorietracker.ui.theme
 
-import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80,
-    surfaceContainer = Color(0xFFE1E4E8),
-    surface = Color(0xFFE1E4E8),
-    //background = Color(0xFF0A0A0A)
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    surfaceContainer = Color(0xFF636870),
-    //surfaceContainer = Color(0xFFF2F5F5),
-    //surface = Color(0xFFF2F5F5),
-    surface =  Color(0xFF636870),
-    background = Color(0xFF0A0A0A),
-
-    //background = Color(0xFFFFFBFE),
-    //surface = Color(0xFFFFFBFE),
-    onPrimary = Color(0xFFF2F5F5),
-    onSecondary = Color(0xFFF2F5F5),
-    onTertiary = Color(0xFFF2F5F5),
-    onBackground = Color(0xFFF2F5F5),
-    onSurface = Color(0xFFF2F5F5),
+private val AppColorScheme = darkColorScheme(
+    primary                  = AccentPurple,
+    onPrimary                = OnAccentPurple,
+    primaryContainer         = AccentPurpleContainer,
+    onPrimaryContainer       = OnAccentPurpleContainer,
+    secondary                = PurpleGrey80,
+    onSecondary              = DarkBackground,
+    secondaryContainer       = PurpleGrey40,
+    onSecondaryContainer     = DarkOnBackground,
+    background               = DarkBackground,
+    onBackground             = DarkOnBackground,
+    surface                  = DarkSurface,
+    onSurface                = DarkOnSurface,
+    surfaceContainer         = DarkSurfaceContainer,
+    surfaceContainerHigh     = DarkSurfaceContainerHigh,
+    surfaceContainerHighest  = DarkSurfaceContainerHighest,
+    onSurfaceVariant         = DarkOnSurfaceVariant,
+    outline                  = DarkOutline,
+    outlineVariant           = DarkOutlineVariant,
 )
 
 @Composable
 fun MyApplicationTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = LightColorScheme /* when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            //if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-            dynamicLightColorScheme(context)
-        }
-
-        //darkTheme -> DarkColorScheme
-        //else -> LightColorScheme
-    }
-    */
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = AppColorScheme,
         typography = Typography,
         content = content
     )

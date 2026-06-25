@@ -1,5 +1,6 @@
 package com.rares.calorietracker.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -38,7 +39,16 @@ class SignInViewModel constructor(
 
     fun onSignInClick(openAndPopUp: (String, String) -> Unit) {
         launchCatching {
+            Log.d("SIGNIN", "before sign in")
             accountService.signIn(email.value, password.value)
+            openAndPopUp("Home", "signIn")
+        }
+    }
+
+    fun onGoogleSignInClick(context: Context, openAndPopUp: (String, String) -> Unit) {
+        launchCatching {
+            Log.d("SIGNIN", "before sign in goog")
+            accountService.signInWithGoogle(context)
             openAndPopUp("Home", "signIn")
         }
     }
@@ -48,7 +58,7 @@ class SignInViewModel constructor(
     }
 
     fun onSignUpClick(openAndPopUp: (String, String) -> Unit) {
-        Log.d("DEBUGSIGN", "doing sign up")
+        Log.d("SIGNIN", "doing sign up")
         launchCatching {
             if (password.value != confirmPassword.value) {
                 throw Exception("Passwords do not match")

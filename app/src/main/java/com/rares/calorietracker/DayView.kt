@@ -86,6 +86,9 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
     var weight = remember {
         mutableStateOf(dayInfo.weight.toString())
     }
+    var targetCalories = remember {
+        mutableStateOf(dayInfo.targetCalories.toInt().toString())
+    }
     var expandedTrainingName = remember {
         mutableStateOf(false)
     }
@@ -128,6 +131,7 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                     rating.value = dayInfo.workoutRating.toString()
                     nrSteps.value = dayInfo.stepCount.toString()
                     selectedTraining.value = dayInfo.trainingName
+                    targetCalories.value = dayInfo.targetCalories.toInt().toString()
                 },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                 containerColor = MaterialTheme.colorScheme.surface,
@@ -176,6 +180,19 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                                 }
                             }
                         }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Target calories: ", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                        OutlinedTextField(
+                            modifier = Modifier.weight(2f),
+                            value = targetCalories.value,
+                            onValueChange = { targetCalories.value = it },
+                            textStyle = MaterialTheme.typography.titleMedium
+                        )
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -271,8 +288,9 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                             dayInfo.workoutRating = rating.value.toInt()
                             dayInfo.stepCount = nrSteps.value.toInt()
                             dayInfo.trainingName = selectedTraining.value
+                            dayInfo.targetCalories = targetCalories.value.toDoubleOrNull()?.takeIf { it > 0 } ?: dayInfo.targetCalories
 
-                            viewModel.saveDay(dayInfo)
+                            viewModel.saveDayAsync(dayInfo)
 
                             expandedTrainingName.value = false
                             settingsDialog.value = false
@@ -489,7 +507,7 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                 items(dayInfo.currentFood.size) {
                     FoodViewInDay(dayInfo.currentFood[it], onDelete = {
                         dayInfo.delMeal(dayInfo.currentFood[it])
-                        viewModel.saveDay(dayInfo)
+                        viewModel.saveDayAsync(dayInfo)
                     }, navController = navController, day = dayInfo.date.toString())
                 }
             }

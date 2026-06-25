@@ -24,39 +24,42 @@ import androidx.compose.ui.unit.dp
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
 
+private fun Double.toInputString(): String =
+    if (this % 1.0 == 0.0) this.toInt().toString() else this.toString()
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdded: Boolean) -> Unit) {
     var newProtein = remember {
-        mutableStateOf(meal.protein.toString())
+        mutableStateOf(meal.protein.toInputString())
     }
 
     var newQualProtein = remember {
-        mutableStateOf(meal.qualProtein.toString())
+        mutableStateOf(meal.qualProtein.toInputString())
     }
 
     var newCarbs = remember {
-        mutableStateOf(meal.carbs.toString())
+        mutableStateOf(meal.carbs.toInputString())
     }
 
     var newFat = remember {
-        mutableStateOf(meal.fat.toString())
+        mutableStateOf(meal.fat.toInputString())
     }
 
     var newSalt = remember {
-        mutableStateOf(meal.salt.toString())
+        mutableStateOf(meal.salt.toInputString())
     }
 
     var newPrice = remember {
-        mutableStateOf(meal.price.toString())
+        mutableStateOf(meal.price.toInputString())
     }
 
     var newCalories = remember {
-        mutableStateOf(meal.calories.toString())
+        mutableStateOf(meal.calories.toInputString())
     }
 
     var newPortionSize = remember {
-        mutableStateOf(meal.portionSize.toString())
+        mutableStateOf(meal.portionSize.toInputString())
     }
 
     var newName = remember {
@@ -223,14 +226,14 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = {
-                    newProtein.value = meal.protein.toString()
-                    newQualProtein.value = meal.qualProtein.toString()
-                    newCarbs.value = meal.carbs.toString()
-                    newFat.value = meal.fat.toString()
-                    newSalt.value = meal.salt.toString()
-                    newPrice.value = meal.price.toString()
-                    newCalories.value = meal.calories.toString()
-                    newPortionSize.value = meal.portionSize.toString()
+                    newProtein.value = meal.protein.toInputString()
+                    newQualProtein.value = meal.qualProtein.toInputString()
+                    newCarbs.value = meal.carbs.toInputString()
+                    newFat.value = meal.fat.toInputString()
+                    newSalt.value = meal.salt.toInputString()
+                    newPrice.value = meal.price.toInputString()
+                    newCalories.value = meal.calories.toInputString()
+                    newPortionSize.value = meal.portionSize.toInputString()
                     newName.value = meal.name
                     onDismiss(false)
                 }) {

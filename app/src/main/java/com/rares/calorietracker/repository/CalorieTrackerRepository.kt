@@ -1,6 +1,7 @@
 package com.rares.calorietracker.repository
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -33,6 +34,8 @@ class CalorieTrackerRepository {
     }
 
     fun isLoggedIn() : Boolean {
+        //Firebase.auth.signOut()
+        //Log.d("LOGINUSER", Firebase.auth.currentUser.toString())
         return (Firebase.auth.currentUser != null)
     }
     fun fsToIngredientSnack(FSMEal: FSMeal, allIngredients: MutableMap<String, Meal>) : Meal { //doesn t give back the isPartOf list
@@ -378,9 +381,15 @@ class CalorieTrackerRepository {
         return ans
     }
 
-    suspend fun saveDay(dayInfo: DayInfo): String {
+    suspend fun saveDay(dayInfo: DayInfo, newStat: StatInfo? = null): String {
         val fsDay = DayInfoToFS(dayInfo)
-        val newStatInfo = StatInfo(dayInfo.currentCalories, dayInfo.weight)
+        val newStatInfo : StatInfo
+
+        if ( newStat == null )
+            newStatInfo = StatInfo(dayInfo.currentCalories, dayInfo.weight, dayInfo.trainingTime, dayInfo.cost, dayInfo.salt)
+        else
+            newStatInfo = newStat
+
         userDoc.collection("stats").document("summary").set(hashMapOf("history" to hashMapOf(fsDay.date to newStatInfo)), SetOptions.merge())
         return if (dayInfo.id.isEmpty()) {
             userDoc.collection("days").add(fsDay).await().id
