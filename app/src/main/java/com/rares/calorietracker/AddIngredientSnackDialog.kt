@@ -49,10 +49,13 @@ fun AddIngredientDialog(
     var weightText = remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
 
+    val query = searchText.value.trim()
     val filtered = if ( selectedIngredient.value != null ) {
-        ingredients
+        ingredients.sortedBy { it.name.lowercase() }
     } else {
-        ingredients.filter { it.name.contains(searchText.value.trim(), ignoreCase = true) }
+        //names starting with the search come first, then alphabetical
+        ingredients.filter { it.name.contains(query, ignoreCase = true) }
+            .sortedWith(compareBy({ !it.name.startsWith(query, ignoreCase = true) }, { it.name.lowercase() }))
     }
 
     AlertDialog(

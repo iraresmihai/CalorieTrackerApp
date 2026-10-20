@@ -92,14 +92,15 @@ fun IngredientsView(allFoodList: AllFoodList, navController: NavController, view
     var showAdd = remember { mutableStateOf(false) }
     val emptyIngredient = remember { mutableStateOf(Meal("New ingredient", TypeOfMeal.INGREDIENT)) }
     var coroutineScope = rememberCoroutineScope()
+    val sortedIngredients = allFoodList.allIngredients.sortedBy { it.name.lowercase() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            items(allFoodList.allIngredients.size) { MealCard(allFoodList.allIngredients[it], false, onClick = {
-                navController.navigate("Ingredient/${allFoodList.allIngredients[it].id}")
+            items(sortedIngredients.size) { MealCard(sortedIngredients[it], false, onClick = {
+                navController.navigate("Ingredient/${sortedIngredients[it].id}")
             })
             }
         }
@@ -133,17 +134,18 @@ fun IngredientsView(allFoodList: AllFoodList, navController: NavController, view
 
 @Composable
 fun MealsView(allFoodList: AllFoodList, navController: NavController, viewModel: CalorieTrackerViewModel) {
+    val sortedMeals = allFoodList.allMeals.sortedBy { it.name.lowercase() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            items(allFoodList.allMeals.size) {
+            items(sortedMeals.size) {
                 MealCard(
-                    allFoodList.allMeals[it], false,
+                    sortedMeals[it], false,
                     onClick = {
-                        navController.navigate("Meal/false/false/null/${allFoodList.allMeals[it].id}")
+                        navController.navigate("Meal/false/false/null/${sortedMeals[it].id}")
                     }) }
         }
         FloatingActionButton(
@@ -161,14 +163,15 @@ fun SnacksView(allFoodList: AllFoodList, navController: NavController, viewModel
     var showAdd = remember { mutableStateOf(false) }
     val emptySnack = remember { mutableStateOf(Meal("New snack", TypeOfMeal.SNACK)) }
     var coroutineScope = rememberCoroutineScope()
+    val sortedSnacks = allFoodList.allSnacks.sortedBy { it.name.lowercase() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            items(allFoodList.allSnacks.size) { MealCard(allFoodList.allSnacks[it], false, onClick = {
-                navController.navigate("Snack/${allFoodList.allSnacks[it].id}")
+            items(sortedSnacks.size) { MealCard(sortedSnacks[it], false, onClick = {
+                navController.navigate("Snack/${sortedSnacks[it].id}")
             })
             }
         }

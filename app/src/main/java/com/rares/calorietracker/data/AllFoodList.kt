@@ -8,6 +8,12 @@ class AllFoodList(var id: String = "") {
     val allSnacks = mutableStateListOf<Meal>()
     val allIngredients = mutableStateListOf<Meal>()
 
+    fun clear() {
+        allMeals.clear()
+        allSnacks.clear()
+        allIngredients.clear()
+    }
+
     fun addMeal(meal: Meal) {
         allMeals.add(meal)
     }

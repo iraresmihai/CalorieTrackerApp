@@ -44,8 +44,20 @@ class CalorieTrackerViewModel : ViewModel() {
         }
     }
 
+    private var loadedUserId: String? = null //whose data is currently loaded, so it only gets loaded once
+
     fun loadData() {
+        val userId = repository.currentUserId() ?: return
+        if ( userId == loadedUserId ) { //already loaded (or loading), loading again would add everything a second time
+            return
+        }
         Log.d("DEBUGLOAD", "loadData")
+        loadedUserId = userId
+        //a different account logged in, drop the previous account's data
+        allFoodList.clear()
+        allMealInfo.clear()
+        allDays.clear()
+        allStats.clear()
         viewModelScope.launch {
             try {
                 repository.loadAllFoodList(allFoodList, allMealInfo)
@@ -53,6 +65,7 @@ class CalorieTrackerViewModel : ViewModel() {
                 typeOfTraining = repository.loadTypeOfTraining()
                 Log.d("TYPETR", typeOfTraining.id)
             } catch (e: Exception) {
+                loadedUserId = null //allow a retry
                 Log.e("CalorieTracker", "Failed to load data: ${e.message}")
             }
         }

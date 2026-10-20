@@ -33,6 +33,10 @@ class CalorieTrackerRepository {
         }
     }
 
+    fun currentUserId() : String? {
+        return Firebase.auth.currentUser?.uid
+    }
+
     fun isLoggedIn() : Boolean {
         //Firebase.auth.signOut()
         //Log.d("LOGINUSER", Firebase.auth.currentUser.toString())
