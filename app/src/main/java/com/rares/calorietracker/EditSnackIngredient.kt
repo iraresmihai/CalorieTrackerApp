@@ -1,5 +1,22 @@
 package com.rares.calorietracker
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import kotlinx.coroutines.launch
+import java.io.File
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +43,13 @@ import com.rares.calorietracker.data.TypeOfMeal
 
 private fun Double.toInputString(): String =
     if (this % 1.0 == 0.0) this.toInt().toString() else this.toString()
+
+//temporary file the camera app writes the label photo into
+private fun newPhotoUri(context: Context): Uri {
+    val dir = File(context.cacheDir, "label_photos").apply { mkdirs() }
+    val file = File(dir, "label.jpg")
+    return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +90,49 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
         mutableStateOf(meal.name)
     }
 
+    //nutrition label scanning
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isScanning = remember { mutableStateOf(false) }
+    var scanMessage = remember { mutableStateOf<String?>(null) }
+    var scanFailed = remember { mutableStateOf(false) }
+    var photoUri = remember { mutableStateOf<Uri?>(null) }
+
+    val scanImage: (Uri) -> Unit = { uri ->
+        isScanning.value = true
+        scanMessage.value = null
+        coroutineScope.launch {
+            try {
+                val values = LabelScanner.scan(context, uri)
+                values.calories?.let { newCalories.value = formatWeight(it) }
+                values.fat?.let { newFat.value = formatWeight(it) }
+                values.carbs?.let { newCarbs.value = formatWeight(it) }
+                values.protein?.let { newProtein.value = formatWeight(it) }
+                values.salt?.let { newSalt.value = formatWeight(it) }
+                newPortionSize.value = "100" //the label values are per 100g
+                if (values.name != null && (newName.value.isBlank() || newName.value == meal.initialName)) {
+                    newName.value = values.name
+                }
+                val missing = listOf("calories" to values.calories, "fat" to values.fat, "carbs" to values.carbs, "protein" to values.protein, "salt" to values.salt)
+                    .filter { it.second == null }.map { it.first }
+                scanFailed.value = false
+                scanMessage.value = if (missing.isEmpty()) "Filled in per 100g, check the values." else "Couldn't read: ${missing.joinToString()}. Please fill those in."
+            } catch (e: Exception) {
+                scanFailed.value = true
+                scanMessage.value = (e as? LabelScanException)?.message ?: "Scanning failed: ${e.message}"
+            } finally {
+                isScanning.value = false
+            }
+        }
+    }
+    val takePhoto = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        val uri = photoUri.value
+        if (success && uri != null) scanImage(uri)
+    }
+    val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) scanImage(uri)
+    }
+
     ModalBottomSheet(
         //properties = ModalBottomSheetProperties(shouldDismissOnBackPress = false),
         onDismissRequest = {onDismiss(false)},
@@ -85,6 +152,40 @@ fun EditSnackIngredient(meal: Meal, isToAdd: Boolean = false, onDismiss: (wasAdd
                     Text("Create new snack", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
             else
                 Text("Change product info", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    enabled = !isScanning.value,
+                    onClick = {
+                        val uri = newPhotoUri(context)
+                        photoUri.value = uri
+                        takePhoto.launch(uri)
+                    }
+                ) {
+                    Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                    Text(" Scan label")
+                }
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    enabled = !isScanning.value,
+                    onClick = { pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+                ) {
+                    Icon(Icons.Default.Image, contentDescription = null)
+                    Text(" From gallery")
+                }
+            }
+            if (isScanning.value) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Text("Reading label…", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            scanMessage.value?.let {
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = if (scanFailed.value) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

@@ -44,15 +44,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rares.calorietracker.data.FinalMeal
 import com.rares.calorietracker.data.Meal
 import com.rares.calorietracker.data.TypeOfMeal
 import com.rares.calorietracker.ui.theme.MyApplicationTheme
@@ -77,11 +80,18 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
     var showAddIngredientCustom = remember { mutableStateOf(false) }
     var emptyIngredient = remember { mutableStateOf(Meal("New ingredient", TypeOfMeal.INGREDIENT)) }
     var coroutineScope = rememberCoroutineScope()
+    var discardDialog = remember { mutableStateOf(false) }
+
+    if ( isToAdd ) {
+        DisposableEffect(Unit) {
+            viewModel.isEditingNewMeal = true
+            onDispose { viewModel.isEditingNewMeal = false }
+        }
+    }
 
     BackHandler {
         if (isToAdd) {
-            onAdd(false)
-            navController.popBackStack()
+            discardDialog.value = true
         } else {
             onAdd(true)
             navController.popBackStack()
@@ -155,6 +165,23 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                 whatToAdd = "snack"
             )
         }
+        if ( discardDialog.value ) {
+            AlertDialog(
+                onDismissRequest = { discardDialog.value = false },
+                title = { Text("Discard meal?") },
+                text = { Text("This meal hasn't been added yet. Are you sure you want to delete it?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        discardDialog.value = false
+                        onAdd(false)
+                        navController.popBackStack()
+                    }) { Text("Delete") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { discardDialog.value = false }) { Text("Keep editing") }
+                }
+            )
+        }
         if ( deleteDialog.value ) {
             AlertDialog(
                 onDismissRequest = { deleteDialog.value = false },
@@ -217,7 +244,8 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                         mealName.value = it
                         meal.name = it
                     },
-                    textStyle = MaterialTheme.typography.titleMedium
+                    textStyle = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface), //BasicTextField defaults to black
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
                 )
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                     IconButton(onClick = {
@@ -335,6 +363,14 @@ fun MealView(meal: Meal, viewModel: CalorieTrackerViewModel, navController: NavC
                 items(meal.ingredients.size) {
                     FoodView(meal.ingredients[it], onDelete = {
                         meal.ingredients.removeAt(it)
+                        meal.recalcInfo()
+                        viewModel.saveMeal(meal)
+                        if ( isInDay ) {
+                            onAdd(true)
+                        }
+                    }, onWeightChange = { newWeight ->
+                        val old = meal.ingredients[it]
+                        meal.ingredients[it] = FinalMeal(old.meal, newWeight, old.name) //replaced so the list recomposes
                         meal.recalcInfo()
                         viewModel.saveMeal(meal)
                         if ( isInDay ) {

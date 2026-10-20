@@ -159,4 +159,19 @@ data class Meal(val initialName : String, var typeOfMeal: TypeOfMeal = TypeOfMea
             x.recalcInfo()
         }
     }
+
+    fun scaleToWeight(newWeight: Double) { //used for logged food, keeps the values per 100g the same
+        if ( !isFinalMeal() || portionSize == 0.0 ) {
+            return
+        }
+        val ratio = newWeight / portionSize
+        this.calories *= ratio
+        this.fat *= ratio
+        this.carbs *= ratio
+        this.protein *= ratio
+        this.qualProtein *= ratio
+        this.price *= ratio
+        this.salt *= ratio
+        this.portionSize = newWeight
+    }
 }

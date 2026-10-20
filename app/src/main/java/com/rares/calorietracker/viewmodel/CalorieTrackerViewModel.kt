@@ -34,6 +34,7 @@ class CalorieTrackerViewModel : ViewModel() {
     val allStats = mutableStateMapOf<LocalDate, StatInfo>()
     var hasUnsavedSettings by mutableStateOf(false)
     var commitPendingSettings: (() -> Unit)? = null
+    var isEditingNewMeal by mutableStateOf(false) //a new meal is open which hasn't been added yet
 
     private val repository = CalorieTrackerRepository()
 

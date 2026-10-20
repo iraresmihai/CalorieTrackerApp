@@ -22,6 +22,51 @@
           }
         },
         {
+          "client_id": "286636189083-s7lukk98m3quv12i12s1nb7sg0p3d37n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rares.calorietracker",
+            "certificate_hash": "398bad8ec71f90ff8a18fa6c6afd30704c957f8c"
+          }
+        },
+        {
+          "client_id": "286636189083-poma66h522r35ctmf2563rj1kc3c1etp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0LlIRbMCUNTiN_q72tXaqK0F5-7T5DnI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "286636189083-poma66h522r35ctmf2563rj1kc3c1etp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:286636189083:android:e9f2716b9de4ae7c466d3e",
+        "android_client_info": {
+          "package_name": "com.rares.calorietracker.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "286636189083-j6h5rghffunsq3n2bulep3d9ipdti23n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rares.calorietracker.dev",
+            "certificate_hash": "398bad8ec71f90ff8a18fa6c6afd30704c957f8c"
+          }
+        },
+        {
           "client_id": "286636189083-poma66h522r35ctmf2563rj1kc3c1etp.apps.googleusercontent.com",
           "client_type": 3
         }

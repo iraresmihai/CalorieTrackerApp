@@ -508,6 +508,12 @@ fun DayView(dayInfo: DayInfo, allTrainingNames: TypeOfTraining, foodList: AllFoo
                     FoodViewInDay(dayInfo.currentFood[it], onDelete = {
                         dayInfo.delMeal(dayInfo.currentFood[it])
                         viewModel.saveDayAsync(dayInfo)
+                    }, onWeightChange = { newWeight ->
+                        val meal = dayInfo.currentFood[it]
+                        meal.scaleToWeight(newWeight)
+                        viewModel.saveMeal(meal)
+                        dayInfo.recalcVal()
+                        viewModel.saveDayAsync(dayInfo)
                     }, navController = navController, day = dayInfo.date.toString())
                 }
             }

@@ -12,6 +12,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,11 +39,29 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 @Composable
-fun FoodViewInDay(meal: Meal, onDelete: () -> Unit = {}, navController: NavController, day: String){
+fun FoodViewInDay(meal: Meal, onDelete: () -> Unit = {}, onWeightChange: (Double) -> Unit = {}, navController: NavController, day: String){
+    var showEditWeight = remember { mutableStateOf(false) }
+
+    if (showEditWeight.value) {
+        EditWeightDialog(
+            name = meal.name,
+            currentWeight = meal.portionSize,
+            onDismiss = { showEditWeight.value = false },
+            onConfirm = { newWeight ->
+                onWeightChange(newWeight)
+                showEditWeight.value = false
+            }
+        )
+    }
+
     Column() {
         Card(
             onClick = {
-                navController.navigate("MealInDay/$day/${meal.id}")
+                if ( meal.isFinalMeal() ) { //ingredients and snacks only have a weight to change
+                    showEditWeight.value = true
+                } else {
+                    navController.navigate("MealInDay/$day/${meal.id}")
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)

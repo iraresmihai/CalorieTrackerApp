@@ -70,6 +70,7 @@ fun App() {
     val showAddMeal = remember { mutableStateOf(false) }
     var showUnsavedSettingsDialog by remember { mutableStateOf(false) }
     var pendingNavRoute by remember { mutableStateOf("") }
+    var showDiscardMealDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
     val accountService = remember { AccountServiceRepository() }
@@ -144,6 +145,23 @@ fun App() {
                                 }
                             )
                         }
+                        if (showDiscardMealDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showDiscardMealDialog = false },
+                                title = { Text("Discard meal?") },
+                                text = { Text("This meal hasn't been added yet. Are you sure you want to delete it?") },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        viewModel.isEditingNewMeal = false
+                                        navController.navigate(pendingNavRoute)
+                                        showDiscardMealDialog = false
+                                    }) { Text("Delete") }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDiscardMealDialog = false }) { Text("Keep editing") }
+                                }
+                            )
+                        }
                         listOf("Home", "Recipes", null, "Stats", "Settings").forEach { route ->
                             if (route == null) {
                                 Spacer(modifier = Modifier.weight(1f))
@@ -154,6 +172,9 @@ fun App() {
                                         if (currentRoute == "Settings" && viewModel.hasUnsavedSettings && route != "Settings") {
                                             pendingNavRoute = route
                                             showUnsavedSettingsDialog = true
+                                        } else if (viewModel.isEditingNewMeal) {
+                                            pendingNavRoute = route
+                                            showDiscardMealDialog = true
                                         } else {
                                             navController.navigate(route)
                                         }
