@@ -82,10 +82,13 @@ class CalorieTrackerRepository {
         }
 
         for ( x in FSMeal.ingredients ) {
+            if ( x.meal.isBlank() ) {
+                continue
+            }
             if ( !allIngredients.containsKey(x.meal) ) {
                 loadCustomRecipesAndAdd(allIngredients, listOf(x.meal))
             }
-            aux.addIngredient(allIngredients[x.meal]!!, x.weightEaten)
+            allIngredients[x.meal]?.let { aux.addIngredient(it, x.weightEaten) } //skipped if its document is missing
         }
 
         aux.name = FSMeal.name
@@ -132,7 +135,13 @@ class CalorieTrackerRepository {
         val aux = DayInfo(date = LocalDate.parse(FSDayInfo.date), trainingName = FSDayInfo.trainingName, targetCalories = FSDayInfo.targetCalories, id = FSDayInfo.id)
 
         for ( x in FSDayInfo.currentFood ) {
-            aux.addMeal(fsToMeal(x, allIngredients))
+            if ( x.isBlank() ) { //left over from a meal that was saved to the day before it had an id
+                continue
+            }
+            if ( !allIngredients.containsKey(x) ) {
+                loadCustomRecipesAndAdd(allIngredients, listOf(x))
+            }
+            allIngredients[x]?.let { aux.addMeal(it) } //skipped if its document is missing
         }
 
         aux.workoutRating = FSDayInfo.workoutRating
@@ -270,32 +279,29 @@ class CalorieTrackerRepository {
         return ans
     }
 
-    suspend fun loadCustomIngredients(allIngredients: MutableMap<String, Meal>, neededIds: List<String>) {
-        if ( neededIds.isEmpty() ) {
-            return
+    //loads the given meal documents. firestore rejects empty ids and allows at most 30 ids per whereIn, so they get filtered and split
+    private suspend fun loadMealsById(neededIds: List<String>): List<FSMeal> {
+        val ans = mutableListOf<FSMeal>()
+        for ( chunk in neededIds.filter { it.isNotBlank() }.distinct().chunked(30) ) {
+            val result = userDoc.collection("loggedInfo")
+                .whereIn(FieldPath.documentId(), chunk)
+                .get()
+                .await()
+            result.forEach { doc ->
+                ans.add(doc.toObject(FSMeal::class.java).copy(id = doc.id))
+            }
         }
-        val result = userDoc.collection("loggedInfo")
-            .whereIn(FieldPath.documentId(), neededIds)
-            .get()
-            .await()
-        result.forEach { doc ->
-            val fsMeal = doc.toObject(FSMeal::class.java).copy(id = doc.id)
+        return ans
+    }
+
+    suspend fun loadCustomIngredients(allIngredients: MutableMap<String, Meal>, neededIds: List<String>) {
+        for ( fsMeal in loadMealsById(neededIds) ) {
             allIngredients.set(fsMeal.id, fsToIngredientSnack(fsMeal, allIngredients))
         }
     }
 
     suspend fun loadCustomRecipes(targetList: MutableList<FSMeal>, neededIds: List<String>) {
-        if ( neededIds.isEmpty() ) {
-            return
-        }
-        val result = userDoc.collection("loggedInfo")
-            .whereIn(FieldPath.documentId(), neededIds)
-            .get()
-            .await()
-        result.forEach { doc ->
-            val fsMeal = doc.toObject(FSMeal::class.java).copy(id = doc.id)
-            targetList.add(fsMeal)
-        }
+        targetList.addAll(loadMealsById(neededIds))
     }
 
     suspend fun loadCustomRecipesAndAdd(allIngredients: MutableMap<String, Meal>, neededIds: List<String>) {
@@ -385,7 +391,16 @@ class CalorieTrackerRepository {
         return ans
     }
 
+    //ids are generated on the phone, so the object has its id right away. waiting for the server's id let other saves
+    //run in the meantime with an empty id (a day pointing to food "", duplicate documents), and never finishes offline
+    fun newMealId(): String {
+        return userDoc.collection("loggedInfo").document().id
+    }
+
     suspend fun saveDay(dayInfo: DayInfo, newStat: StatInfo? = null): String {
+        if ( dayInfo.id.isEmpty() ) {
+            dayInfo.id = userDoc.collection("days").document().id
+        }
         val fsDay = DayInfoToFS(dayInfo)
         val newStatInfo : StatInfo
 
@@ -395,31 +410,23 @@ class CalorieTrackerRepository {
             newStatInfo = newStat
 
         userDoc.collection("stats").document("summary").set(hashMapOf("history" to hashMapOf(fsDay.date to newStatInfo)), SetOptions.merge())
-        return if (dayInfo.id.isEmpty()) {
-            userDoc.collection("days").add(fsDay).await().id
-        } else {
-            userDoc.collection("days").document(dayInfo.id).set(fsDay).await()
-            dayInfo.id
-        }
+        userDoc.collection("days").document(dayInfo.id).set(fsDay).await()
+        return dayInfo.id
     }
 
     suspend fun saveMeal(meal: Meal): String {
-        val fsMeal = mealToFS(meal)
-        return if (meal.id.isEmpty()) {
-            userDoc.collection("loggedInfo").add(fsMeal).await().id
-        } else {
-            userDoc.collection("loggedInfo").document(meal.id).set(fsMeal).await()
-            meal.id
+        if ( meal.id.isEmpty() ) {
+            meal.id = newMealId()
         }
+        userDoc.collection("loggedInfo").document(meal.id).set(mealToFS(meal)).await()
+        return meal.id
     }
 
     suspend fun saveTypeOfTraining(typeOfTraining: TypeOfTraining): String {
-        val fsTypeOfTraining = TypeOfTrainingToFS(typeOfTraining)
-        return if (typeOfTraining.id.isEmpty()) {
-            userDoc.collection("trainingInfo").add(fsTypeOfTraining).await().id
-        } else {
-            userDoc.collection("trainingInfo").document(typeOfTraining.id).set(fsTypeOfTraining).await()
-            typeOfTraining.id
+        if ( typeOfTraining.id.isEmpty() ) {
+            typeOfTraining.id = userDoc.collection("trainingInfo").document().id
         }
+        userDoc.collection("trainingInfo").document(typeOfTraining.id).set(TypeOfTrainingToFS(typeOfTraining)).await()
+        return typeOfTraining.id
     }
 }

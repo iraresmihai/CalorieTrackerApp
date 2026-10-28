@@ -151,23 +151,21 @@ class CalorieTrackerViewModel : ViewModel() {
     }
 
     fun saveMeal(meal: Meal) {
+        addToFoodList(meal) //before launching, so the meal already has its id when this returns
         viewModelScope.launch {
-            meal.id = repository.saveMeal(meal)
-            if ( !allMealInfo.containsKey(meal.id) ) {
-                allMealInfo[meal.id] = meal
-                if ( meal.typeOfMeal == TypeOfMeal.INGREDIENT ) {
-                    allFoodList.addIngredient(meal)
-                } else if ( meal.typeOfMeal == TypeOfMeal.SNACK ) {
-                    allFoodList.addSnack(meal)
-                } else if ( meal.typeOfMeal == TypeOfMeal.BASIC_MEAL ) {
-                    allFoodList.addMeal(meal)
-                }
-            }
+            repository.saveMeal(meal)
         }
     }
 
     suspend fun saveMealSuspended(meal: Meal) {
-        meal.id = repository.saveMeal(meal)
+        addToFoodList(meal)
+        repository.saveMeal(meal)
+    }
+
+    private fun addToFoodList(meal: Meal) { //gives a new meal its id and adds it to the lists
+        if ( meal.id.isEmpty() ) {
+            meal.id = repository.newMealId()
+        }
         if ( !allMealInfo.containsKey(meal.id) ) {
             allMealInfo[meal.id] = meal
             if ( meal.typeOfMeal == TypeOfMeal.INGREDIENT ) {
